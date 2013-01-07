@@ -1,0 +1,2 @@
+﻿Scaffold MVVM-CRUD -ModelType FuelTracker.Web.Car -PrimaryKeyName Id -DefaultNamespace FuelTracker -DomainContextName FuelTrackerContext -NoChildRelatedEntities -Force
+Scaffold ViewModelEdit -ModelType FuelTracker.Web.Car -PrimaryKeyName Id -DefaultNamespace FuelTracker -DomainContextName FuelTrackerContext -NoChildRelatedEntities -Force

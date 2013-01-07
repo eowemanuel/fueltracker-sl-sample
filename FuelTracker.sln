@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuelTracker", "FuelTracker\FuelTracker.csproj", "{1505745C-6CD8-4BD9-B507-A757F1CBB605}"
+	ProjectSection(ProjectDependencies) = postProject
+		{676DF939-EA65-4F68-8CA9-A0B61A38FF39} = {676DF939-EA65-4F68-8CA9-A0B61A38FF39}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuelTracker.Web", "FuelTracker.Web\FuelTracker.Web.csproj", "{676DF939-EA65-4F68-8CA9-A0B61A38FF39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuelTracker.Tests", "FuelTracker.Tests\FuelTracker.Tests.csproj", "{AFD636C5-913C-44DB-9918-23FD40A32FF8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{676DF939-EA65-4F68-8CA9-A0B61A38FF39} = {676DF939-EA65-4F68-8CA9-A0B61A38FF39}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1505745C-6CD8-4BD9-B507-A757F1CBB605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1505745C-6CD8-4BD9-B507-A757F1CBB605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1505745C-6CD8-4BD9-B507-A757F1CBB605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1505745C-6CD8-4BD9-B507-A757F1CBB605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{676DF939-EA65-4F68-8CA9-A0B61A38FF39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{676DF939-EA65-4F68-8CA9-A0B61A38FF39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{676DF939-EA65-4F68-8CA9-A0B61A38FF39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{676DF939-EA65-4F68-8CA9-A0B61A38FF39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFD636C5-913C-44DB-9918-23FD40A32FF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFD636C5-913C-44DB-9918-23FD40A32FF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFD636C5-913C-44DB-9918-23FD40A32FF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFD636C5-913C-44DB-9918-23FD40A32FF8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

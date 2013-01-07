@@ -1,0 +1,558 @@
+﻿<#@ Template Language="C#" HostSpecific="True" Inherits="DynamicTransform" #>
+<#@ Output Extension="cs" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations" #>
+<#@ import namespace="System.Data.Linq.Mapping" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Diagnostics" #>
+<# var modelType = (EnvDTE.CodeType)Model.ModelType;
+ var viewModelName = Model.ViewModelName;
+ var domainContext = Model.DomainContextName;
+   
+ string Namespace = Model.Namespace;
+ string defaultNamespace = Model.DefaultNamespace;
+ 
+// string modelTypeNamespace = modelType.Namespace;
+ string modelTypeName = modelType.Name;
+ string modelTypeNameLowerFirstLetter = modelTypeName.ToLower()[0] + modelTypeName.Substring(1);
+ string modelTypeNamePlural = Model.ModelTypeNamePlural;//modelTypeName + "s";
+ string modelTypeNamePluralLowerFirstLetter = modelTypeNamePlural.ToLower()[0] + modelTypeNamePlural.Substring(1);
+
+ string primaryKeyName = Model.PrimaryKeyName;//modelTypeName + "Id";
+ string primaryKeyNameLowerFirstLetter = primaryKeyName.ToLower()[0] + primaryKeyName.Substring(1);
+ 
+#>
+using System;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Linq;
+using System.ServiceModel.DomainServices.Client;
+using System.Windows.Data;
+using <#= defaultNamespace #>.DesignServices;
+using <#= defaultNamespace #>.Messages;
+using <#= defaultNamespace #>.Services;
+using <#= defaultNamespace #>.Web;
+using <#= defaultNamespace #>.Web.Services;
+using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
+using Microsoft.Windows.Data.DomainServices;
+
+ 
+namespace <#= Namespace #>
+{
+	public class <#= viewModelName #> : ViewModelBase
+	{
+		private readonly <#= domainContext #> _context = new <#= domainContext #>();
+
+		private readonly DomainCollectionView<<#=modelTypeName #>> _view;
+		private readonly DomainCollectionViewLoader<<#=modelTypeName #>> _loader;
+		private readonly EntityList<<#=modelTypeName #>> _source;
+
+		/// <summary>
+		/// Initializes a new instance of the <#= viewModelName #> class.
+		/// </summary>
+		public <#= viewModelName #>()
+		{
+			this._source = new EntityList<<#=modelTypeName #>>(this._context.<#=modelTypeNamePlural #>);
+			this._loader = new DomainCollectionViewLoader<<#=modelTypeName #>>(
+									this.Load<#=modelTypeNamePlural #>,
+									this.OnLoad<#=modelTypeNamePlural #>Completed);
+			this._view = new DomainCollectionView<<#=modelTypeName #>>(this._loader, this._source);
+
+			#region DesignerProperties.IsInDesignTool
+			// Swap out the loader for design-time scenarios
+			if (IsInDesignMode)
+			{
+				Design<#=modelTypeNamePlural #>Loader loader = new Design<#=modelTypeNamePlural #>Loader();
+				this._view = new DomainCollectionView<<#=modelTypeName #>>(loader, loader.Source);
+			}
+			#endregion
+			
+			// Go back to the first page when the sorting changes
+			INotifyCollectionChanged notifyingSortDescriptions =
+				(INotifyCollectionChanged)this.CollectionView.SortDescriptions;
+			notifyingSortDescriptions.CollectionChanged +=
+				(sender, e) => this._view.MoveToFirstPage();
+
+			this.Init();
+			this.LoadView();
+			
+			//TO DO:Implement LoadNomenclatures method
+			//this.LoadNomenclatures();
+
+		}
+
+		private void Init()
+		{
+			//TO DO: Init uninitialized resources
+		}
+		
+		private int _pageSize = 10;
+        public int PageSize
+        {
+            get { return _pageSize; }
+            set { _pageSize = value; }
+        }
+
+		private void LoadView()
+		{
+			using (this.CollectionView.DeferRefresh())
+			{
+				this.CollectionView.PageSize = PageSize;
+				this.CollectionView.SetTotalItemCount(-1);
+				this.CollectionView.MoveToFirstPage();
+			}
+		}
+
+		private void ApplyGrouping()
+		{
+			//TO DO: Update ApplyGrouping mehod
+			//PropertyGroupDescription groupDescriptionMyProperty = new PropertyGroupDescription("MyProperty");
+			//this.CollectionView.GroupDescriptions.Add(groupDescriptionMyProperty);
+		}
+
+		private void ApplySorting()
+		{
+			//TO DO: Update Apply sorting method
+			//SortDescription sortDescriptionMyProperty = new SortDescription("MyProperty", ListSortDirection.Descending);
+			//this.CollectionView.SortDescriptions.Add(sortDescriptionMyProperty);
+		}
+
+		#region View Properties
+		public const string IsGridEnabledPropertyName = "IsGridEnabled";
+		private bool _isGridEnabled;
+		public bool IsGridEnabled
+		{
+			get
+			{
+				return _isGridEnabled;
+			}
+
+			set
+			{
+				if (_isGridEnabled == value)
+				{
+					return;
+				}
+
+				var oldValue = _isGridEnabled;
+				_isGridEnabled = value;
+
+				RaisePropertyChanged(IsGridEnabledPropertyName);
+			}
+		}
+
+		public DomainCollectionView<<#=modelTypeName #>> CollectionView
+		{
+			get { return this._view; }
+		}
+
+		#region Selected<#=modelTypeName #>
+		public const string Selected<#=modelTypeName #>PropertyName = "Selected<#=modelTypeName #>";
+		private <#=modelTypeName #> _selected<#=modelTypeName #>;
+		public <#=modelTypeName #> Selected<#=modelTypeName #>
+		{
+			get
+			{
+				return _selected<#=modelTypeName #>;
+			}
+
+			set
+			{
+				if (_selected<#=modelTypeName #> == value)
+				{
+					return;
+				}
+
+				var oldValue = _selected<#=modelTypeName #>;
+				_selected<#=modelTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(Selected<#=modelTypeName #>PropertyName);
+				//notify the Control that CanEdit<#=modelTypeName #> is enabled
+				if (Selected<#=modelTypeName #> == null)
+				{
+					CanEdit<#=modelTypeName #> = false;
+				}
+				else
+				{
+					CanEdit<#=modelTypeName #> = true;
+				}
+				
+
+			}
+		}
+		#endregion
+
+
+		#endregion
+
+		private LoadOperation<<#=modelTypeName #>> Load<#=modelTypeNamePlural #>()
+		{
+			this.IsGridEnabled = false;
+
+			var query = this._context
+								.Get<#=modelTypeNamePlural #>Query();
+
+			//TO DO: Update filtering
+			//if (MyPropertyFilter > 0)
+			//{
+			//    query = query.Where(mm => mm.MyProperty == MyPropertyFilter);
+			//}
+
+			return this._context.Load(query.SortAndPageBy(this._view), LoadBehavior.RefreshCurrent, false);
+		}
+
+		private void OnLoad<#=modelTypeNamePlural #>Completed(LoadOperation<<#=modelTypeName #>> op)
+		{
+			this.IsGridEnabled = true;
+
+			if (op.HasError)
+			{
+				// TODO: handle errors
+				var error = op.Error;
+				throw error;
+
+				op.MarkErrorAsHandled();
+			}
+			else if (!op.IsCanceled)
+			{
+				this._source.Source = op.Entities;
+
+				if (op.TotalEntityCount != -1)
+				{
+					this.CollectionView.SetTotalItemCount(op.TotalEntityCount);
+				}
+			}
+
+			if (_source.Count >= 0)
+			{
+				CollectionView.MoveCurrentToFirst();
+			}
+		}
+
+
+		#region Commands
+
+		#region Edit<#=modelTypeName #>Command
+		private RelayCommand _edit<#=modelTypeName #>Command;
+		/// <summary>
+		/// The <see cref="Edit<#=modelTypeName #>Command" />.
+		/// </summary>
+		public RelayCommand Edit<#=modelTypeName #>Command
+		{
+			get
+			{
+				if (_edit<#=modelTypeName #>Command == null)
+				{
+					_edit<#=modelTypeName #>Command = new RelayCommand(
+							() =>
+							{
+								Edit<#=modelTypeName #>Execute();
+							},
+							() => CanEdit<#=modelTypeName #>
+						);
+				}
+				return _edit<#=modelTypeName #>Command;
+			}
+			set
+			{
+				_edit<#=modelTypeName #>Command = value;
+			}
+		}
+
+		/// <summary>
+		/// Executes when Edit<#=modelTypeName #>Command is called
+		/// </summary>
+		public void Edit<#=modelTypeName #>Execute()
+		{
+			throw new NotImplementedException();
+			//TO DO: Implement the Edit<#=modelTypeName #>Execute method
+			// Messenger.Default.Send(
+			//     new LaunchEdit<#=modelTypeName #>Message()
+			//     {
+			//         <#=modelTypeName #> = Selected<#=modelTypeName #>,
+			//         Context = this._context
+			//     }
+			// );
+		}
+
+		public const string CanEdit<#=modelTypeName #>PropertyName = "CanEdit<#=modelTypeName #>";
+		private bool _canEdit<#=modelTypeName #> = false;
+
+		/// <summary>
+		/// Gets the CanEdit<#=modelTypeName #> property.
+		/// If false command is not enabled
+		/// If true command is enabled
+		/// </summary>
+		public bool CanEdit<#=modelTypeName #>
+		{
+			get
+			{
+				return _canEdit<#=modelTypeName #>;
+			}
+
+			set
+			{
+				if (_canEdit<#=modelTypeName #> == value)
+				{
+					return;
+				}
+
+				var oldValue = _canEdit<#=modelTypeName #>;
+				_canEdit<#=modelTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanEdit<#=modelTypeName #>PropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				Edit<#=modelTypeName #>Command.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region AddNew<#=modelTypeName #>Command
+
+		private RelayCommand _addNew<#=modelTypeName #>Command;
+		/// <summary>
+		/// The <see cref="AddNew<#=modelTypeName #>Command" />.
+		/// </summary>
+		public RelayCommand AddNew<#=modelTypeName #>Command
+		{
+			get
+			{
+				if (_addNew<#=modelTypeName #>Command == null)
+				{
+					_addNew<#=modelTypeName #>Command = new RelayCommand(
+							() =>
+							{
+								AddNew<#=modelTypeName #>Execute();
+							},
+							() => CanAddNew<#=modelTypeName #>
+						);
+				}
+				return _addNew<#=modelTypeName #>Command;
+			}
+			set
+			{
+				_addNew<#=modelTypeName #>Command = value;
+			}
+		}
+
+		/// <summary>
+		/// Executes when AddNew<#=modelTypeName #>Command is called
+		/// </summary>
+		public void AddNew<#=modelTypeName #>Execute()
+		{
+			throw new NotImplementedException();
+			//TO DO: Update AddNew command
+			//LaunchNew<#=modelTypeName #>Message message = new LaunchNew<#=modelTypeName #>Message();
+			//Messenger.Default.Send(message);
+		}
+
+		public const string CanAddNew<#=modelTypeName #>PropertyName = "CanAddNew<#=modelTypeName #>";
+		private bool _canAddNew<#=modelTypeName #> = true;
+
+		/// <summary>
+		/// Gets the CanAddNew<#=modelTypeName #> property. Check if Can Add new <#=modelTypeName #> 
+		/// If false command is not enabled
+		/// If true command is enabled
+		/// </summary>
+		public bool CanAddNew<#=modelTypeName #>
+		{
+			get
+			{
+				return _canAddNew<#=modelTypeName #>;
+			}
+
+			set
+			{
+				if (_canAddNew<#=modelTypeName #> == value)
+				{
+					return;
+				}
+
+				var oldValue = _canAddNew<#=modelTypeName #>;
+				_canAddNew<#=modelTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanAddNew<#=modelTypeName #>PropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				AddNew<#=modelTypeName #>Command.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region SearchCommand
+
+		private RelayCommand _searchCommand;
+		public RelayCommand SearchCommand
+		{
+			get
+			{
+				if (_searchCommand == null)
+				{
+					_searchCommand = new RelayCommand(
+							() =>
+							{
+								SearchExecute();
+							},
+							() => CanSearch
+						);
+				}
+				return _searchCommand;
+			}
+			set
+			{
+				_searchCommand = value;
+			}
+		}
+
+		public void SearchExecute()
+		{
+			this.LoadView();
+		}
+
+		public const string CanSearchPropertyName = "CanSearch";
+		private bool _canSearch = true;
+		public bool CanSearch
+		{
+			get
+			{
+				return _canSearch;
+			}
+
+			set
+			{
+				if (_canSearch == value)
+				{
+					return;
+				}
+
+				var oldValue = _canSearch;
+				_canSearch = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanSearchPropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				SearchCommand.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#endregion
+		
+
+		private void LoadNomenclatures()
+		{
+			throw new NotImplementedException();
+			//TO DO: Load all nomenclatures here
+			//this.LoadClientGroupsNomenclature();
+			//
+		}
+		
+		public override void Cleanup()
+		{
+			// Clean own resources if needed
+			base.Cleanup();
+		}
+
+	}
+}
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>

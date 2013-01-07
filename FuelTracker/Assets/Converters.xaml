@@ -1,0 +1,20 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+                    xmlns:acsutils="clr-namespace:Acstre.Utilities.SL4;assembly=Acstre.Utilities.SL4" 
+                    xmlns:main="clr-namespace:FuelTracker">
+    <acsutils:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+    <acsutils:NotBoolToVisibilityConverter x:Key="NotBoolToVisibility" />
+    <acsutils:StringToLowerConverter x:Key="StringToLower" />
+    <acsutils:StringToUpperConverter x:Key="StringToUpper" />
+    <acsutils:InverseBoolConverter x:Key="Not" />
+    
+    <!--Nomenclature converters-->
+    <!--<main:ProductIdToProductNameConverter x:Key="ProductIdToName" />
+    <main:MeasureTypeIdToNameConverter x:Key="MeasureTypeIdToName" />
+    <main:RecipeGroupIdToNameConverter x:Key="RecipeGroupIdToName" />
+    <main:RecipeTypeIdToNameConverter x:Key="RecipeTypeIdToName" />
+    <main:ClientGroupIdToNameConverter x:Key="ClientGroupIdToName" />
+    <main:ProductGroupIdToNameConverter x:Key="ProductGroupIdToName" />
+    <main:ProductSubGroupIdToNameConverter x:Key="ProductSubGroupIdToName" />
+    <main:RecipeIdToNameConverter x:Key="RecipeIdToName" />
+    <main:MealTypeIdToNameConverter x:Key="MealTypeIdToName" />-->
+</ResourceDictionary>

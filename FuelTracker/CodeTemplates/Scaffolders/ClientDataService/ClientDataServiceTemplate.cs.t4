@@ -1,0 +1,273 @@
+﻿<#@ Template Language="C#" HostSpecific="True" Inherits="DynamicTransform" #>
+<#@ Output Extension="cs" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations" #>
+<#@ import namespace="System.Data.Linq.Mapping" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Diagnostics" #>
+<# var modelType = (EnvDTE.CodeType)Model.ModelType;
+ var clientDataServiceName = Model.ClientDataServiceName;
+ var clientDataServiceInterfaceName = "I"+clientDataServiceName;
+ 
+ string Namespace = Model.Namespace;
+ string defaultNamespace = Model.DefaultNamespace;
+
+ //string modelTypeNamespace = modelType.Namespace;
+ string modelTypeName = modelType.Name;
+ string modelTypeNameLowerFirstLetter = modelTypeName.ToLower()[0] + modelTypeName.Substring(1);
+ string modelTypeNamePlural = Model.ModelTypeNamePlural;//modelTypeName + "s";
+ string modelTypeNamePluralLowerFirstLetter = modelTypeNamePlural.ToLower()[0] + modelTypeNamePlural.Substring(1);
+
+ string primaryKeyName = Model.PrimaryKeyName;
+ string primaryKeyNameLowerFirstLetter = primaryKeyName.ToLower()[0] + primaryKeyName.Substring(1);
+ 
+ string DomainContextName = Model.DomainContextName;
+ 
+ 
+#>
+// <#= modelTypeName #>DataService.cs
+using System;
+using System.Collections.ObjectModel;
+using System.ServiceModel.DomainServices.Client;
+using Microsoft.Windows.Data.DomainServices;
+using <#= defaultNamespace #>.Web;
+using <#= defaultNamespace #>.Web.Services;
+
+namespace <#= Namespace #>
+{
+	//ServiceProviderBase
+	//public virtual <#= clientDataServiceInterfaceName #> <#= clientDataServiceName #> { get; protected set; }
+	//
+	//ServiceProvider
+	//    public override <#= clientDataServiceInterfaceName #> <#= clientDataServiceName #>
+	//    {
+	//        get { return new <#= clientDataServiceName #>(); }
+	//    }
+
+	//TO DO: Uncommnent or delete or extract in another file
+	//public class HasChangesEventArgs : EventArgs
+	//{
+	//    public bool HasChanges { get; set; }
+	//}
+	
+	public class <#= clientDataServiceName #> : <#= clientDataServiceInterfaceName #>
+	{
+		public event EventHandler<HasChangesEventArgs> NotifyHasChanges;
+		public <#= DomainContextName #> Context { get; set; }
+		private Action<ObservableCollection< <#= modelTypeName #> >> _get<#= modelTypeNamePlural #>Callback;
+
+		private LoadOperation<<#= modelTypeName #>> _<#= modelTypeNamePluralLowerFirstLetter #>LoadOperation;
+		private int _pageIndex;
+
+		/// <summary>
+		/// Initialize the <#= clientDataServiceName #>
+		/// </summary>
+		public <#= clientDataServiceName #>()
+		{
+			Context = new <#= DomainContextName #>();
+			Context.PropertyChanged += ContextPropertyChanged;
+		}
+
+		/// <summary>
+		/// Saves changes to the Context if available.
+		/// </summary>
+		/// <param name="submitCallback">CallBack to be called after load complition</param>
+		/// <param name="state"></param>
+		public void Save(Action<SubmitOperation> submitCallback, object state)
+		{
+			if (Context.HasChanges)
+			{
+				Context.SubmitChanges(submitCallback, state);
+			}
+		}
+
+		/// <summary>
+		/// Load <#= modelTypeName #>List
+		/// </summary>
+		/// <param name="get<#= modelTypeNamePlural #>Callback">CallBack to be called after load complition</param>
+		/// <param name="pageSize"></param>
+		public void Get<#= modelTypeNamePlural #>List(Action<ObservableCollection<<#= modelTypeName #>>> get<#= modelTypeNamePlural #>Callback, int pageSize)
+		{
+			Clear<#= modelTypeNamePlural #>();
+			var query = Context.Get<#= modelTypeNamePlural #>Query().Take(pageSize);
+			Run<#= modelTypeNamePlural #>Query(query, get<#= modelTypeNamePlural #>Callback);
+		}
+
+		/// <summary>
+		/// Notifies for property changes
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ContextPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (NotifyHasChanges != null)
+			{
+				NotifyHasChanges(this, new HasChangesEventArgs() { HasChanges = Context.HasChanges });
+			}
+		}
+
+		/// <summary>
+		/// Clear <#= modelTypeName #> List
+		/// </summary>
+		private void Clear<#= modelTypeNamePlural #>()
+		{
+			_pageIndex = 0;
+			Context.<#= modelTypeNamePlural #>.Clear();
+		}
+
+		/// <summary>
+		/// Run <#= modelTypeNamePlural #> Query
+		/// </summary>
+		/// <param name="query">Query</param>
+		/// <param name="get<#= modelTypeNamePlural #>Callback">CallBack</param>
+		private void Run<#= modelTypeNamePlural #>Query(EntityQuery<<#= modelTypeName #>> query, Action<ObservableCollection<<#= modelTypeName #>>> get<#= modelTypeNamePlural #>Callback)
+		{
+			_get<#= modelTypeNamePlural #>Callback = get<#= modelTypeNamePlural #>Callback;
+			_<#= modelTypeNamePluralLowerFirstLetter #>LoadOperation = Context.Load<<#= modelTypeName #>>(query);
+			_<#= modelTypeNamePluralLowerFirstLetter #>LoadOperation.Completed += OnLoad<#= modelTypeNamePlural #>Completed;
+		}
+
+		/// <summary>
+		/// <#= modelTypeNamePlural #> loading Completed event
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void OnLoad<#= modelTypeNamePlural #>Completed(object sender, EventArgs e)
+		{
+			_<#= modelTypeNamePluralLowerFirstLetter #>LoadOperation.Completed -= OnLoad<#= modelTypeNamePlural #>Completed;
+			var <#= modelTypeNamePluralLowerFirstLetter #> = new EntityList<<#= modelTypeName #>>(Context.<#= modelTypeNamePlural #>, _<#= modelTypeNamePluralLowerFirstLetter #>LoadOperation.Entities);
+			_get<#= modelTypeNamePlural #>Callback(<#= modelTypeNamePluralLowerFirstLetter #>);
+		}
+
+		/// <summary>
+		/// Get <#= modelTypeName #> by Id
+		/// </summary>
+		/// <param name="<#=  primaryKeyNameLowerFirstLetter #>"></param>
+		/// <param name="get<#= modelTypeNamePlural #>Callback"></param>
+		public void Get<#= modelTypeName #>ById(int <#=  primaryKeyNameLowerFirstLetter #>, Action<ObservableCollection<<#= modelTypeName #>>> get<#= modelTypeName #>Callback)
+		{
+			Clear<#= modelTypeNamePlural #>();
+			var query = Context.Get<#= modelTypeNamePlural #>Query().Where(mm => mm.<#=  primaryKeyName #> == <#=  primaryKeyNameLowerFirstLetter #>);
+			Run<#= modelTypeNamePlural #>Query(query, get<#= modelTypeName #>Callback);
+		}
+
+
+		public void Save(<#= modelTypeName #> <#= modelTypeNameLowerFirstLetter #>, Action<SubmitOperation> submitCallback, object state)
+		{
+			Context.<#= modelTypeNamePlural #>.Add(<#= modelTypeNameLowerFirstLetter #>);
+			if (Context.HasChanges)
+			{
+				Context.SubmitChanges(submitCallback, state);
+			}
+		}
+	}
+
+	public interface <#= clientDataServiceInterfaceName #>
+	{
+		event EventHandler<HasChangesEventArgs> NotifyHasChanges;	
+
+		void Save(Action<SubmitOperation> submitCallback, object state);
+
+		void Get<#= modelTypeName #>ById(int <#=  primaryKeyNameLowerFirstLetter #>, Action<ObservableCollection<<#= modelTypeName #>>> get<#= modelTypeName #>Callback);
+
+		void Get<#= modelTypeNamePlural #>List(
+			Action<ObservableCollection<<#= modelTypeName #>>> get<#= modelTypeNamePlural #>Callback,
+			int pageSize);
+
+		void Save(<#= modelTypeName #> <#= modelTypeName #>, Action<SubmitOperation> submitCallback, object state);
+	}
+}
+
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>

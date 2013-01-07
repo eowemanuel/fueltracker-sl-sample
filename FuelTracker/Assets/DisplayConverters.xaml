@@ -1,0 +1,15 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:main="clr-namespace:FuelTracker" >
+
+    <main:IsNewToTextConverter x:Key="IsNewToText"/>
+
+    <!--Common operation display converters -->
+    <main:IsZeroToTextConverter x:Key="IsZeroToCloseButtonTitle" TrueValue="Откажи и затвори" FalseValue="Затвори"/>
+    <main:IsZeroToTextConverter x:Key="IsZeroToIsNewText" TrueValue="Нов" FalseValue=""/>
+    <main:BoolToVisibilityConverter x:Key="BoolToVisibility" TrueValue="Visible" FalseValue="Collapsed" />
+    <main:BoolToTextConverter x:Key="HasChangesToCloseButtonText" TrueValue="Откажи и затвори" FalseValue="Затвори" DefaultValue="Затвори"/>
+
+    <main:IsZeroToTextFormatConverter x:Key="IsZeroToModelOperationTitle" TrueValueFormat="Добавяне на ново {}{0}" FalseValueFormat="Преглед и редакция на {}{0}" DefaultValueFormat="Преглед и редакция на {}{0}"/>
+</ResourceDictionary>

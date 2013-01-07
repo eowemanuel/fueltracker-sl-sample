@@ -1,0 +1,272 @@
+<controls:ChildWindow xmlns:my="clr-namespace:FuelTracker.Controls"   
+		   x:Class="FuelTracker.Views.UserProfileEditView"
+		   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+		   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		   mc:Ignorable="d"
+		   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+		   xmlns:customControls="clr-namespace:Acstre.Windows.Controls;assembly=Acstre.Windows.Controls"
+		   xmlns:controls="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls"
+		   xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk"
+		   xmlns:main="clr-namespace:FuelTracker"                      
+		   Width="640" Height="480" 
+		   Title="Преглед, редакция или добавяне на меню"
+			d:DataContext="{Binding Source={StaticResource Locator}, Path=UserProfilesListViewModel}"          
+					  >
+	<sdk:ChildWindow.Resources>
+		<!-- When defining your own styles, set "based on" the same way to keep control theming -->
+		<Style x:Key="OkButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}" />
+
+		<ItemsPanelTemplate x:Key="StackPanelItemsPanelTemplate">
+			<VirtualizingStackPanel />
+		</ItemsPanelTemplate>
+		
+		<customControls:DataContextProxy x:Key="DataContextProxy"/>
+
+		<DataTemplate x:Key="ErrorsDisplayDataTemplate">
+			<StackPanel Orientation="Horizontal">
+				<StackPanel Visibility="{Binding HasValidationErrors, Converter={StaticResource BoolToVisibility}}" Orientation="Horizontal">
+					<my:ErrorIcon ToolTipService.ToolTip="Грешки!" />
+				</StackPanel>
+			</StackPanel>
+		</DataTemplate>
+
+		<ControlTemplate x:Key="ErrorsDisplayControlTemplate">
+			<StackPanel Orientation="Horizontal">
+				<StackPanel Visibility="{Binding HasValidationErrors, Converter={StaticResource BoolToVisibility}}" Orientation="Horizontal">
+					<my:ErrorIcon >
+						<ToolTipService.ToolTip>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="Открити са грешки" Margin="3"/>
+								<TextBlock Text="{Binding Source=ValidationErrors, Path=Count}" Margin="3"/>
+							</StackPanel>
+						</ToolTipService.ToolTip>
+					</my:ErrorIcon>
+				</StackPanel>
+			</StackPanel>
+		</ControlTemplate>
+
+		<DataTemplate x:Key="MealMenuRecipeEditDataTemplate">
+			<Grid Grid.Row="2" 
+					  Grid.ColumnSpan="2" 
+					  DataContext="{Binding Path=SelectedItem, Mode=TwoWay, ElementName=recipeProductsDataGrid}" 
+					  Background="White" 
+					  >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<StackPanel Grid.Row="0" Orientation="Horizontal"></StackPanel>
+				<StackPanel Grid.Row="1" Orientation="Horizontal">
+					<Grid Width="30" Margin="2">
+						<ContentControl Style="{StaticResource EditIcon}"></ContentControl>
+					</Grid>
+
+				</StackPanel>
+				<StackPanel Grid.Row="2">
+					<ItemsControl ItemsSource="{Binding ValidationErros}"></ItemsControl>
+				</StackPanel>
+			</Grid>
+		</DataTemplate>
+		<DataTemplate x:Key="EmptyDataTemplate">
+		</DataTemplate>
+	</sdk:ChildWindow.Resources>
+	<Grid x:Name="LayoutRoot" Margin="2">
+		<Grid.Resources>
+
+		</Grid.Resources>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--Binding to the MealMenu model property of the ViewModel-->
+		<Border Grid.Column="0" Grid.Row="1" 
+				DataContext="{Binding MealMenu}" >
+			<Grid Name="gridRoot" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+				<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+					<ContentControl Style="{StaticResource CommonIcon}" />
+					<TextBlock FontWeight="Bold" Text="{Binding UserProfileId, Converter={StaticResource IsZeroToModelOperationTitle}, ConverterParameter='MealMenu' }" VerticalAlignment="Center"  />
+				</StackPanel>
+					
+				<Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch"
+					   Name="gridMealMenuDetails" Width="Auto">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />		
+						<RowDefinition Height="Auto" />		
+						<RowDefinition Height="Auto" />		
+						<RowDefinition Height="Auto" />		
+						<RowDefinition Height="Auto" />		
+					</Grid.RowDefinitions>
+					<TextBlock Text="Cars"  Margin="2" Grid.Row="1" Grid.Column="0"/>
+					<TextBox Text="{Binding Cars}"  Margin="2" Grid.Row="1" Grid.Column="1"/>
+					<TextBlock Text="City"  Margin="2" Grid.Row="2" Grid.Column="0"/>
+					<TextBox Text="{Binding City}"  Margin="2" Grid.Row="2" Grid.Column="1"/>
+					<TextBlock Text="Id"  Margin="2" Grid.Row="3" Grid.Column="0"/>
+					<TextBox Text="{Binding Id}"  Margin="2" Grid.Row="3" Grid.Column="1"/>
+					<TextBlock Text="UserName"  Margin="2" Grid.Row="4" Grid.Column="0"/>
+					<TextBox Text="{Binding UserName}"  Margin="2" Grid.Row="4" Grid.Column="1"/>
+	
+				</Grid>
+				<!--Child related entities-->
+				<StackPanel Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<!--MealMenuRecipes child entities-->				
+					<Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" Name="recipeProductsListGrid" VerticalAlignment="Stretch">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="1*" />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="*" MinHeight="100" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+
+						<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+							<ContentControl Style="{StaticResource CommonIcon}" />
+							<TextBlock FontWeight="Bold" Text="Ястия в менюто" Visibility="Visible" />
+						</StackPanel>
+						<sdk:DataGrid AutoGenerateColumns="False" Grid.Column="0" Grid.Row="1" 
+									  ItemsSource="{Binding Path=MealMenuRecipes, Mode=TwoWay}" 
+									  Name="mealMenuRecipesDataGrid" 
+									  RowDetailsVisibilityMode="VisibleWhenSelected"
+									  SelectedItem="{Binding Path=DataContext.SelectedMealMenuRecipe, Mode=TwoWay, ElementName=LayoutRoot}" 
+									  SelectionMode="Single"
+									  RowDetailsTemplate="{StaticResource MealMenuRecipeEditDataTemplate}"
+							>
+							<sdk:DataGrid.Resources>
+								<!--Parent related entities To a child entity-->
+								<!--<DataTemplate x:Key="RecipeViewDataTemplate">
+									<TextBlock Text="{Binding Path=RecipeId, Converter={StaticResource RecipeIdToName}}" Width="150" Margin="2"/>
+								</DataTemplate>
+								<DataTemplate x:Key="RecipeEditDataTemplate">
+									<customControls:ComboBoxEx
+													  Margin="2"  
+													  DisplayMemberPath="Name"
+													  SelectedValueProper="{Binding RecipeId, Mode=TwoWay, NotifyOnValidationError=True}"
+													  SelectedValuePath="RecipeId" 
+													  Width="150" 
+													  ItemsSource="{Binding Path=DataSource.Recipes, Source={StaticResource DataContextProxy}}" 
+											 />
+								</DataTemplate>-->
+							</sdk:DataGrid.Resources>
+							<sdk:DataGrid.Columns>
+				<sdk:DataGridTemplateColumn Header="Engine">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding Engine}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="EngineVolume">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding EngineVolume}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="FuelTracks">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding FuelTracks}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="Id">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding Id}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="Manufacturer">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding Manufacturer}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="ManufacturingDate">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding ManufacturingDate}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="Model">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding Model}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="Name">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding Name}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="Types">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding Types}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="UserProfile">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding UserProfile}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+				<sdk:DataGridTemplateColumn Header="UserProfileId">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding UserProfileId}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+								<sdk:DataGridTemplateColumn x:Name="validationColumn" CellTemplate="{StaticResource ErrorsDisplayDataTemplate}"/>
+							</sdk:DataGrid.Columns>
+						</sdk:DataGrid>
+
+						<StackPanel Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" Orientation="Horizontal">
+							<Button Command="{Binding Path=DataContext.AddNewMealMenuRecipeCommand,ElementName=LayoutRoot, Mode=TwoWay}" Content="Добави ястие" HorizontalAlignment="Right" Margin="2" Name="AddMealMenuRecipeButton" Width="Auto" Style="{StaticResource AddButtonStyle}" />
+							<Button Content="Редактирай ястие" Margin="2" Name="EditMealMenuRecipeButton" Width="Auto" Visibility="Collapsed" />
+							<Button Command="{Binding Path=DataContext.DeleteMealMenuRecipeCommand, Mode=TwoWay, ElementName=LayoutRoot}" Content="Премахни ястие" HorizontalAlignment="Right"  Margin="2" Name="RemoveMealMenuRecipeButton" Width="Auto" Style="{StaticResource DeleteButtonStyle}" />
+						</StackPanel>
+					</Grid>
+				</StackPanel>
+			</Grid>
+		</Border>
+		<StackPanel HorizontalAlignment="Left" Margin="0,0,3,0" Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Center">
+			<ContentControl 
+				HorizontalAlignment="Stretch"
+				VerticalAlignment="Stretch"
+				DataContext="{Binding MealMenu}"
+				Template="{StaticResource ErrorsDisplayControlTemplate}"/>
+		</StackPanel>
+		<!--Data manipulation buttons-->
+		<StackPanel HorizontalAlignment="Right" Margin="0,0,3,0" Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Bottom">
+			<Button x:Name="OKButton" Content="Запиши" Width="105" Height="30" Margin="3" Command="{Binding SaveMealMenuCommand}" Style="{StaticResource ConfirmButtonStyle}" />
+			<Button x:Name="CancelButton" Content="{Binding MealMenu.HasChanges, Converter={StaticResource HasChangesToCloseButtonText}}" Width="Auto" Height="30" Margin="3" Style="{StaticResource CancelButtonStyle}" />
+		</StackPanel>
+	</Grid>
+</controls:ChildWindow>
+

@@ -1,0 +1,434 @@
+﻿<#@ Template Language="C#" HostSpecific="True" Inherits="DynamicTransform" #>
+<#@ Output Extension="cs" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations" #>
+<#@ import namespace="System.Data.Linq.Mapping" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Diagnostics" #>
+<# var modelType = (EnvDTE.CodeType)Model.ModelType;
+
+ var testsClassName = Model.TestsClassName;
+ var testsNamespace = Model.TestsNamespace;
+ 
+ var domainContext = Model.DomainContextName;
+ 
+ var viewModelName = Model.ViewModelName;   
+ string viewModelNamespace = Model.ViewModelNamespace;
+  
+ string defaultNamespace = Model.DefaultNamespace;
+ string messagesNamespace = defaultNamespace + ".Messages";
+ string servicesNamespace = defaultNamespace + ".Services";
+ string designServicesNamespace = defaultNamespace + ".DesignServices";
+ string designModelNamespace = defaultNamespace + ".DesignModel";
+ string webNamespace = defaultNamespace + ".Web";
+ 
+ string modelTypeName = modelType.Name;
+ string modelTypeNameLowerFirstLetter = modelTypeName.ToLower()[0] + modelTypeName.Substring(1);
+ string modelTypeNamePlural = Model.ModelTypeNamePlural;//modelTypeName + "s";
+ string modelTypeNamePluralLowerFirstLetter = modelTypeNamePlural.ToLower()[0] + modelTypeNamePlural.Substring(1);
+
+ string primaryKeyName = Model.PrimaryKeyName;//modelTypeName + "Id";
+ string primaryKeyNameLowerFirstLetter = primaryKeyName.ToLower()[0] + primaryKeyName.Substring(1);
+
+ string dataServiceName = modelTypeName + "DataService";
+ string dataServiceNameLowerFirstLetter = dataServiceName.ToLower()[0] + dataServiceName.Substring(1); 
+
+ var relatedEntities = ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>();
+
+ bool noChildRelations = (bool)Model.NoChildRelatedEntities;
+ bool includeChildRelations = !noChildRelations; 
+#>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using <#= designModelNamespace #>;
+using <#= designServicesNamespace #>;
+using <#= servicesNamespace #>;
+using <#= viewModelNamespace #>;
+using <#= webNamespace #>;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace <#= testsNamespace #>
+{
+	//Test metods are named:
+	//ObjectOfTest_Condition_ExpectedResult
+	[TestClass]
+	public class <#= testsClassName #>
+	{
+		private <#= modelTypeName  #> GenerateNewDesignOrganizaiton(int <#= primaryKeyNameLowerFirstLetter #>)
+		{
+			int i = <#= primaryKeyNameLowerFirstLetter #>;
+			var organizaiton =
+<#
+	GenerateDesignModelObjectInstanceDeclaration(modelType);
+#>
+
+			return organizaiton;
+		}
+
+		#region Constructor validation
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public void Constructor_<#= dataServiceName #>IsNull_ThrowException()
+		{
+			int <#= primaryKeyNameLowerFirstLetter #> = 1;
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = null;
+			//Parent entities
+<#		
+		GenerateParentEntitiesInitialization(string.Empty);
+#>
+
+			var viewModelEdit = new <#= viewModelName #>(<#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public void Constructor_<#= modelTypeName  #>IsNull_ThrowException()
+		{
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+			//Parent entities
+<#		
+		GenerateParentEntitiesInitialization(string.Empty);
+#>
+
+			<#= modelTypeName  #> <#= modelTypeNameLowerFirstLetter #> = null;
+			var viewModelEdit = new <#= viewModelName #>(<#= modelTypeNameLowerFirstLetter #>, <#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+		}
+
+		#region ParentEntities constructor initialization tests
+		/// <summary>
+		/// Check if throws exception when some of ParentEntities collections are null
+		/// </summary>
+<#
+	foreach(var relatedEntity in ParentRelations)
+	{
+		string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+	
+		string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+		string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+		string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+		string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+		string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+		string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+#>
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public void Constructor_<#= relatedEntityCollectionName #>IsNull_ThrowException()
+		{
+			int <#= primaryKeyNameLowerFirstLetter #> = 1;
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+
+			//Parent entities
+<#		
+		GenerateParentEntitiesInitialization(relatedEntityTypeName);
+#>
+
+			var viewModelEdit = new <#= viewModelName #>(<#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+		}
+<#
+	}
+#>
+		#endregion
+
+		[TestMethod]
+		public void <#= modelTypeName  #>_New_CanSave<#= modelTypeName  #>IsTrue()
+		{
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+			//Parent entities
+<#		
+		GenerateParentEntitiesInitialization(string.Empty);
+#>
+			var viewModelEdit = new <#= viewModelName #>(<#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+
+			Assert.IsTrue(viewModelEdit.CanSave<#= modelTypeName  #>);
+		}
+		#endregion
+
+		#region Child Entities tests
+
+<#
+	if (includeChildRelations)
+	foreach(var relatedEntity in ChildRelations)
+	{
+		string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+	
+		string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+		string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+		string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+		string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+		string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+		string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+#>
+		#region <#= relatedEntityCollectionName #>
+
+		[TestMethod]
+		public void <#= relatedEntityCollectionName #>ParentEntities_<#= modelTypeName #>IsNotNull_CanAddNew<#= relatedEntityTypeName #>IsTrue()
+		{
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+			//Parent entities
+<#
+	    GenerateParentEntitiesInitialization(string.Empty);
+#>
+
+			<#= modelTypeName  #> <#= modelTypeNameLowerFirstLetter #> = GenerateNewDesignOrganizaiton(1);
+			var viewModelEdit = new <#= viewModelName #>(<#= modelTypeNameLowerFirstLetter #>, <#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+
+			Assert.IsTrue(viewModelEdit.CanAddNew<#= relatedEntityTypeName #>);
+		}
+
+		[TestMethod]
+		public void <#= relatedEntityCollectionName #>ParentEntities_<#= modelTypeName  #>IsNull_CanAddNew<#= relatedEntityTypeName #>IsFalse()
+		{
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+			//Parent entities
+<#
+	    GenerateParentEntitiesInitialization(string.Empty);
+#>
+			<#= modelTypeName  #> <#= modelTypeNameLowerFirstLetter #> = GenerateNewDesignOrganizaiton(1);
+			var viewModelEdit = new <#= viewModelName #>(<#= modelTypeNameLowerFirstLetter #>, <#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+			viewModelEdit.<#= modelTypeName  #> = null;
+			Assert.IsFalse(viewModelEdit.CanAddNew<#= relatedEntityTypeName #>);
+		}
+
+		[TestMethod]
+		public void <#= relatedEntityCollectionName #>ParentEntities_<#= relatedEntityTypeName #>IsNotSelected_CanDeleteIsFalse()
+		{
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+			//Parent entities
+<#
+	    GenerateParentEntitiesInitialization(string.Empty);
+#>
+			<#= modelTypeName  #> <#= modelTypeNameLowerFirstLetter #> = GenerateNewDesignOrganizaiton(1);
+			var viewModelEdit = new <#= viewModelName #>(<#= modelTypeNameLowerFirstLetter #>, <#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+			viewModelEdit.Selected<#= relatedEntityTypeName #> = null;
+
+			Assert.IsFalse(viewModelEdit.CanDelete<#= relatedEntityTypeName #>);
+		}
+
+		[TestMethod]
+		public void <#= relatedEntityCollectionName #>ParentEntities_<#= relatedEntityTypeName #>IsSelected_CanDeleteIsTrue()
+		{
+			I<#= dataServiceName #> <#= dataServiceNameLowerFirstLetter #> = new Design<#= dataServiceName #>();
+			//Parent entities
+<#
+	    GenerateParentEntitiesInitialization(string.Empty);
+#>
+			<#= modelTypeName  #> <#= modelTypeNameLowerFirstLetter #> = GenerateNewDesignOrganizaiton(1);
+			var viewModelEdit = new <#= viewModelName #>(<#= modelTypeNameLowerFirstLetter #>, <#= dataServiceNameLowerFirstLetter #><# GenerateParentEntitiesConstructorParameters(); #>);
+			viewModelEdit.Selected<#= relatedEntityTypeName #> = new <#= relatedEntityTypeName #>();
+
+			Assert.IsTrue(viewModelEdit.CanDelete<#= relatedEntityTypeName #>);
+		}
+
+		#endregion
+
+<#
+	}
+#>
+
+		#endregion
+	}
+}
+
+<#+
+public void GenerateParentEntitiesConstructorParameters()
+{
+	//Generates - Parent Related entities
+	foreach(var relatedEntity in ParentRelations)
+	{
+		string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+	
+		string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+		string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+		string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+		string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+		string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+		string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+#>, <#= relatedEntityCollectionNameLowerFirstLetter #><#+
+	}
+}
+#>
+
+<#+
+public void GenerateParentEntitiesInitialization(string typeCollectionToInitWithNull)
+{
+	//Generates - Parent Related entities
+	foreach(var relatedEntity in ParentRelations)
+	{
+		string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+	
+		string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+		string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+		string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+		string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+		string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+		string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+        
+		//init collection with null - required in some tests
+	    if (relatedEntityTypeName == typeCollectionToInitWithNull)
+        {
+#>
+			IEnumerable<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionNameLowerFirstLetter #> = null;
+<#+
+        }
+        else
+        { 
+#>
+			IEnumerable<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionNameLowerFirstLetter #> = new Design<#= relatedEntityTypeNamePlural #>();
+<#+
+		}
+	}
+}
+#>
+
+<#+
+public void GenerateDesignModelObjectInstanceDeclaration(EnvDTE.CodeType codeType)
+{
+	string codeTypeName = codeType.Name;
+#>
+				new <#= codeTypeName #>
+				{
+<#+
+	foreach (ModelProperty property in GetModelProperties(codeType, true)) 
+	{
+		string propertyValue = string.Empty;
+		if ((property.Type.IsType(typeof(decimal)))
+		 || (property.Type.IsType(typeof(double)))
+		 || (property.Type.IsType(typeof(int))))
+		{
+#>
+					<#= property.Name #> = i,
+<#+
+		}
+		else if (property.Type.IsType(typeof(string)))
+		{
+#>
+					<#= property.Name #> = string.Format("<#= property.Name #> {0:5}", i),
+<#+		
+		}
+		else if (property.Type.IsType(typeof(DateTime)))
+		{
+#>
+					<#= property.Name #> = DateTime.Now.AddDays(i),
+<#+		
+		}        
+		else 
+		{
+#>
+					//<#= property.Name #> = null,//TO DO: Update design model assignment of property <#= property.Name #> on <#= codeType.Name #>
+<#+	
+		}        
+	}
+#>
+		};
+<#+
+	
+}
+
+
+#>
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+IEnumerable<RelatedEntityInfo> ChildRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Child); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>

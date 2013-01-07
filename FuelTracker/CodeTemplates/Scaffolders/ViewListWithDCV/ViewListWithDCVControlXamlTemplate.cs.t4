@@ -1,0 +1,304 @@
+﻿<#@ Template Language="C#" HostSpecific="True" Inherits="DynamicTransform" #>
+<#@ Output Extension="xaml" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations" #>
+<#@ import namespace="System.Data.Linq.Mapping" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Diagnostics" #>
+<# var modelType = (EnvDTE.CodeType)Model.ModelType;
+ var viewName = Model.ViewName;
+ var viewControlName = Model.ViewControlName;
+ var viewModelName = Model.ViewModelName;
+ var domainContext = Model.DomainContextName;
+   
+ string Namespace = Model.Namespace;
+ string defaultNamespace = Model.DefaultNamespace;
+ 
+// string modelTypeNamespace = modelType.Namespace;
+ string modelTypeName = modelType.Name;
+ string modelTypeNameLowerFirstLetter = modelTypeName.ToLower()[0] + modelTypeName.Substring(1);
+ string modelTypeNamePlural = Model.ModelTypeNamePlural;//modelTypeName + "s";
+ string modelTypeNamePluralLowerFirstLetter = modelTypeNamePlural.ToLower()[0] + modelTypeNamePlural.Substring(1);
+
+ string primaryKeyName = Model.PrimaryKeyName;//modelTypeName + "Id";
+ string primaryKeyNameLowerFirstLetter = primaryKeyName.ToLower()[0] + primaryKeyName.Substring(1);
+ 
+#>
+<UserControl xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"  xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation"  xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/datagrid" 
+	x:Class="<#= Namespace #>.<#= viewControlName #>"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:toolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit" 
+	xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk" 
+	xmlns:svcs="clr-namespace:<#= defaultNamespace #>.Web.Services"
+	xmlns:ix="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"              
+	xmlns:main="clr-namespace:<#= defaultNamespace #>"                       
+	xmlns:customControls="clr-namespace:Acstre.Windows.Controls;assembly=Acstre.Windows.Controls"             
+	xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.SL4"         
+	mc:Ignorable="d"
+	d:DesignHeight="600" d:DesignWidth="480" xmlns:my="clr-namespace:<#= defaultNamespace #>.Web.Services" xmlns:my1="clr-namespace:<#= defaultNamespace #>.Web"
+	DataContext="{Binding Source={StaticResource Locator}, Path=<#= viewModelName #>}" >
+	<!--DataContext="{Binding Source={StaticResource Locator}, Path=<#= viewModelName #>}"-->
+	<UserControl.Resources>
+		<customControls:DataContextProxy x:Key="DataContextProxy"/>
+	</UserControl.Resources>
+	<Grid x:Name="LayoutRoot" Background="White">
+		<Grid Name="gridRoot" >
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<Border Grid.Column="0" Grid.Row="0"  
+					Style="{StaticResource ContainerBorderStyle}" >
+				<Grid Grid.Column="0" Grid.Row="0">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="*" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<!--<TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Source={StaticResource ResourceWrapper}, Path=<#= modelTypeNamePlural #>ViewStrings.<#= modelTypeNamePlural #>List}" FontWeight="Bold" />-->
+					<Border Grid.Column="0" Grid.Row="0" Style="{StaticResource SearchContainerBorderStyle}">
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<!--Filter panel-->
+							<!--<StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="1" Orientation="Horizontal" Margin="3" Height="24">
+							</StackPanel>
+							<StackPanel Grid.Row="1"  Grid.Column="0" Orientation="Horizontal" Margin="3">
+							</StackPanel>
+							-->
+							<StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="3">
+								<Button Content="Обнови" Command="{Binding SearchCommand}" Style="{StaticResource RefreshButtonStyle}"/>
+							</StackPanel>
+							
+						</Grid>
+
+					</Border>
+					<sdk:DataGrid Grid.Column="0" Grid.Row="1" 
+								   AutoGenerateColumns="false" Grid.RowSpan="1" 
+								   Height="Auto"
+								   ItemsSource="{Binding CollectionView}"
+								   IsEnabled="{Binding IsGridEnabled}"
+								   Name="<#= modelTypeNameLowerFirstLetter #>DataGrid" 
+								   RowDetailsVisibilityMode="VisibleWhenSelected" 
+								   SelectedItem="{Binding Selected<#= modelTypeName #>, Mode=TwoWay}"
+								   VerticalAlignment="Stretch" IsReadOnly="True" CanUserSortColumns="True" Margin="0,0,0,0">
+						<sdk:DataGrid.Resources>
+						</sdk:DataGrid.Resources>
+						<ix:Interaction.Triggers>
+							<ix:EventTrigger EventName="MouseDoubleClick">
+								<cmd:EventToCommand Command="{Binding Path=Edit<#= modelTypeName #>Command}"/>
+							</ix:EventTrigger>
+						</ix:Interaction.Triggers>
+						<sdk:DataGrid.Columns>
+							<sdk:DataGridTextColumn x:Name="<#= primaryKeyNameLowerFirstLetter #>Column" Binding="{Binding Path=<#= primaryKeyName #>, Mode=OneWay}" Header="No." IsReadOnly="True" Width="SizeToHeader" />
+<#
+	GenerateDataGridColumns(modelType);
+#>
+						</sdk:DataGrid.Columns>
+					</sdk:DataGrid>
+					<sdk:DataPager Grid.Column="0" Grid.Row="2"
+						   Height="26" 
+						   HorizontalAlignment="Stretch" 
+						   HorizontalContentAlignment="Center" Margin="0" 
+						   PageSize="10" 
+						   VerticalAlignment="Top"
+						   Width="Auto"  
+						   Source="{Binding CollectionView}"
+						   IsEnabled="{Binding IsGridEnabled}"
+						   BorderThickness="0" />
+				</Grid>
+			</Border>
+			<Border Grid.Column="0" Grid.Row="1" 
+					Style="{StaticResource ContainerBorderStyle}" Visibility="Collapsed">
+			</Border>
+			<StackPanel Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2">
+				<sdk:ValidationSummary Grid.Column="1" Grid.Row="3" Header="Грешки" Height="Auto" Name="validationSummaryCommon" Width="Auto" HorizontalAlignment="Stretch" />
+			</StackPanel>
+			<StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2">
+				<Button Content="Преглед и редакция" Name="buttonEdit"  Command="{Binding Edit<#= modelTypeName #>Command}" Style="{StaticResource EditButtonStyle}" Margin="2"/>
+				<Button Content="Нов" Name="btnNew" Width="100" HorizontalAlignment="Right" Margin="2"  Command="{Binding AddNew<#= modelTypeName #>Command}" Style="{StaticResource AddButtonStyle}"/>
+			</StackPanel>
+		</Grid>
+	</Grid>
+</UserControl>
+
+<#+
+public void GenerateDataGridColumns(EnvDTE.CodeType codeType)
+{
+	foreach (ModelProperty property in GetModelProperties(codeType, true)) 
+	{
+		string propertyValue = string.Empty;
+		string propertyName = property.Name;
+		string propertyNameLowerFirstLetter = propertyName.ToLower()[0] + propertyName.Substring(1);
+		
+		if ((property.Type.IsType(typeof(decimal)))
+		 || (property.Type.IsType(typeof(double)))
+		 || (property.Type.IsType(typeof(int))))
+		{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+		}
+		else if (property.Type.IsType(typeof(string)))
+		{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+		
+		}
+		else if (property.Type.IsType(typeof(DateTime)))
+		{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+		
+		}        
+		else 
+		{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+	
+		}        
+	}
+
+}
+
+
+#>
+
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>

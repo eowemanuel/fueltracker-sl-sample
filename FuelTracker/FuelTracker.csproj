@@ -1,0 +1,506 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1505745C-6CD8-4BD9-B507-A757F1CBB605}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>FuelTracker</RootNamespace>
+    <AssemblyName>FuelTracker</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>true</SilverlightApplication>
+    <SupportedCultures>
+    </SupportedCultures>
+    <XapOutputs>true</XapOutputs>
+    <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
+    <XapFilename>FuelTracker.xap</XapFilename>
+    <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
+    <SilverlightAppEntry>FuelTracker.App</SilverlightAppEntry>
+    <TestPageFileName>TestPage.html</TestPageFileName>
+    <CreateTestPage>true</CreateTestPage>
+    <ValidateXaml>true</ValidateXaml>
+    <EnableOutOfBrowser>false</EnableOutOfBrowser>
+    <OutOfBrowserSettingsFile>Properties\OutOfBrowserSettings.xml</OutOfBrowserSettingsFile>
+    <UsePlatformExtensions>false</UsePlatformExtensions>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <LinkedServerProject>..\FuelTracker.Web\FuelTracker.Web.csproj</LinkedServerProject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Acstre.Utilities.SL4, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="Acstre.Windows.Controls, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.AgDataGrid.v10.1, Version=10.1.5.5, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.AgMenu.v10.1, Version=10.1.5.5, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Data.v10.1, Version=10.1.5.5, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Xpf.Core.v10.1, Version=10.1.5.5, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="FirstLook.ServiceModel.DomainServices.Client.Security, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="GalaSoft.MvvmLight.Extras.SL4">
+      <HintPath>..\packages\MvvmLight.3.0.3\lib\SL4\GalaSoft.MvvmLight.Extras.SL4.dll</HintPath>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.SL4">
+      <HintPath>..\packages\MvvmLight.3.0.3\lib\SL4\GalaSoft.MvvmLight.SL4.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Windows.Data.DomainServices, Version=2.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\RIAServices.ViewModel.4.1.60730.1\lib\Sl40\Microsoft.Windows.Data.DomainServices.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows" />
+    <Reference Include="mscorlib" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows.Controls.Data, Version=2.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="System.Windows.Controls.Data.DataForm.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-Data.4.2010.4\lib\sl4\System.Windows.Controls.Data.DataForm.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Data.Input" />
+    <Reference Include="System.ServiceModel.DomainServices.Client" />
+    <Reference Include="System.ServiceModel.DomainServices.Client.Web" />
+    <Reference Include="System.ServiceModel.Web.Extensions" />
+    <Reference Include="System.Windows.Controls.Data.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-Data.4.2010.4\lib\sl4\System.Windows.Controls.Data.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.DataVisualization.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-DataViz.4.2010.4\lib\sl4\System.Windows.Controls.DataVisualization.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Input, Version=2.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>C:\Program Files (x86)\Microsoft SDKs\Silverlight\v3.0\Libraries\Client\System.Windows.Controls.Input.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Input.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-Input.4.2010.4\lib\sl4\System.Windows.Controls.Input.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Layout.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-Layout.4.2010.4\lib\sl4\System.Windows.Controls.Layout.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Theming.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-Theming.4.2010.4\lib\sl4\System.Windows.Controls.Theming.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Toolkit, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\SilverlightToolkit-Core.4.2010.4\lib\sl4\System.Windows.Controls.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Data, Version=2.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Interactivity, Version=4.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLight.3.0.3\lib\SL4\System.Windows.Interactivity.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Windows.Browser" />
+    <Reference Include="System.Windows.Controls" />
+    <Reference Include="System.Windows.Controls.Navigation" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\FuelTracker.Web\Resources\RegistrationDataResources.Designer.cs">
+      <Link>Web\Resources\RegistrationDataResources.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RegistrationDataResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\FuelTracker.Web\Resources\ValidationErrorResources.Designer.cs">
+      <Link>Web\Resources\ValidationErrorResources.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ValidationErrorResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\Resources\ApplicationStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ApplicationStrings.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\Resources\ErrorResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ErrorResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="DesignModel\DesignToDoItems.cs" />
+    <Compile Include="ExampleOutput.cs" />
+    <Compile Include="Messages\SavedCarDialogMessage.cs" />
+    <Compile Include="Models\ToDoItem.cs" />
+    <Compile Include="Views\CarEditView.xaml.cs">
+      <DependentUpon>CarEditView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CarsListView.xaml.cs">
+      <DependentUpon>CarsListView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CarsListViewControl.xaml.cs">
+      <DependentUpon>CarsListViewControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ViewTokens.cs" />
+    <None Include="CodeTemplates\Scaffolders\EntityMetadata\EntityMetadata.ps1" />
+    <None Include="CodeTemplates\Scaffolders\EntityMetadata\EntityMetadataTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\Message\DialogMessageTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ModelRelatedEntities\ModelRelatedEntities.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ModelRelatedEntities\ModelRelatedEntitiesTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\MVVM-CRUD\MVVM-CRUD.ps1" />
+    <None Include="CodeTemplates\Scaffolders\PageConductorModel\PageConductorModel.ps1" />
+    <None Include="CodeTemplates\Scaffolders\PageConductorModel\PageConductorModelTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewEdit\ViewEdit.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ViewEdit\ViewEditCodeBehindTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewEdit\ViewEditXamlTemplate.cs.t4" />
+    <Compile Include="CodeTemplates\Scaffolders\ViewListWithDCV\ViewListWithDCVPageCodeBehindTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewListWithDCV\ViewListWithDCVControlCodeBehindTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewListWithDCV\ViewListWithDCVPageXamlTemplate.cs.t4" />
+    <Compile Include="Controls\CustomDataForm.cs" />
+    <Compile Include="Controls\MemoryDisplay.xaml.cs">
+      <DependentUpon>MemoryDisplay.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DesignModel\DesignCars.cs" />
+    <Compile Include="DesignModel\DesignUserProfiles.cs" />
+    <Compile Include="DesignServices\DesignCarsLoader.cs" />
+    <Compile Include="DesignServices\DesignServiceProvider.cs" />
+    <Compile Include="DesignServices\DesignUserProfilesLoader.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\BoolToTextConverter.cs" />
+    <Compile Include="Helpers\BoolToVisibilityConverter.cs" />
+    <Compile Include="Helpers\DataBindingExtensions.cs" />
+    <Compile Include="Helpers\StringFormatValueConverter.cs" />
+    <Compile Include="Helpers\UpdateAgDataGridSelectionAction.cs" />
+    <Compile Include="Messages\DialogMessages.cs" />
+    <Compile Include="Messages\ErrorMessage.cs" />
+    <Compile Include="Messages\LaunchEditCarMessage.cs" />
+    <Compile Include="Messages\LaunchEditUserProfileMessage.cs" />
+    <Compile Include="Messages\LaunchNewCarMessage.cs" />
+    <Compile Include="Messages\LaunchNewUserProfileMessage.cs" />
+    <Compile Include="Messages\SavedCarMessage.cs" />
+    <Compile Include="Messages\SavedUserProfileMessage.cs" />
+    <Compile Include="Messages\UpdatedCarMessage.cs" />
+    <Compile Include="Messages\UpdatedUserProfileMessage.cs" />
+    <Compile Include="Models\CarSimpleDto.cs" />
+    <Compile Include="Models\Error.cs" />
+    <Compile Include="Models\LoginInfo.cs" />
+    <Compile Include="Models\Master.cs" />
+    <Compile Include="Models\Ninja.cs" />
+    <Compile Include="Models\User.partial.cs" />
+    <Compile Include="Models\RegistrationData.partial.cs" />
+    <Compile Include="Controls\BusyIndicator.cs" />
+    <Compile Include="Controls\VisualStates.cs" />
+    <Compile Include="Helpers\DataFieldExtensions.cs" />
+    <Compile Include="Helpers\NotOperatorValueConverter.cs" />
+    <Compile Include="Helpers\TargetNullValueConverter.cs" />
+    <Compile Include="Assets\Resources\ApplicationResources.cs" />
+    <Compile Include="Assets\Resources\SecurityQuestions.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SecurityQuestions.resx</DependentUpon>
+    </Compile>
+    <Compile Include="DesignServices\DesignCarDataService.cs" />
+    <Compile Include="DesignServices\DesignUserProfileDataService.cs" />
+    <Compile Include="Services\CarDataService.cs" />
+    <Compile Include="Services\HasChangesEventArgs.cs" />
+    <Compile Include="Services\IPageConductor.cs" />
+    <Compile Include="Services\PageConductor.cs" />
+    <Compile Include="Services\ServiceProvider.cs" />
+    <Compile Include="Services\ServiceProviderBase.cs" />
+    <Compile Include="Services\UserProfileDataService.cs" />
+    <Compile Include="Utils\EntityIdToIsNewTextConverter.cs" />
+    <Compile Include="Utils\IsNewToTextConverter.cs" />
+    <Compile Include="Utils\IsZeroToTextConverter.cs" />
+    <Compile Include="Utils\IsZeroToTextFormatConverter.cs" />
+    <Compile Include="ViewModels\CarEditViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\UserProfileEditViewModel.cs" />
+    <Compile Include="ViewModels\UserProfilesListViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\ErrorWindow.xaml.cs">
+      <DependentUpon>ErrorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\About.xaml.cs">
+      <DependentUpon>About.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Home.xaml.cs">
+      <DependentUpon>Home.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainPage.xaml.cs">
+      <DependentUpon>MainPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\Login\LoginStatus.xaml.cs">
+      <DependentUpon>LoginStatus.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Login\LoginForm.xaml.cs">
+      <DependentUpon>LoginForm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Login\LoginRegistrationWindow.xaml.cs">
+      <DependentUpon>LoginRegistrationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Login\RegistrationForm.xaml.cs">
+      <DependentUpon>RegistrationForm.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="Assets\Authorization.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\Brushes.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\Converters.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\CoreStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\DisplayConverters.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\Fonts.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\SDKStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\Styles-old.xaml">
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Page>
+    <Page Include="Assets\Styles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Assets\ToolkitStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\BusyIndicator.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\CommonIcon.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\EditIcon.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\ErrorIcon.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\MemoryDisplay.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="ViewModels\CarsListViewModel.cs">
+      <Generator>MSBuild:Compile</Generator>
+    </Compile>
+    <Page Include="Views\CarEditView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\CarsListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\CarsListViewControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ErrorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+    </Page>
+    <Page Include="Views\About.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+    </Page>
+    <Page Include="Views\Home.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+    </Page>
+    <Page Include="MainPage.xaml">
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Login\LoginStatus.xaml">
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Login\LoginForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+    </Page>
+    <Page Include="Views\Login\LoginRegistrationWindow.xaml">
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Login\RegistrationForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:MarkupCompilePass1</Generator>
+    </Page>
+    <Page Include="Views\UserProfileEditView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\UserProfilesListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\UserProfilesListViewControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CodeTemplates\Scaffolders\ClientDataService\ClientDataService.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ClientDataService\ClientDataServiceTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ClientDesignDataService\ClientDesignDataService.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ClientDesignDataService\ClientDesignDataServiceTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\DesignCollectionViewLoader\DesignCollectionViewLoader.ps1" />
+    <None Include="CodeTemplates\Scaffolders\DesignCollectionViewLoader\DesignCollectionViewLoaderTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\DesignModel\DesignModel.ps1" />
+    <None Include="CodeTemplates\Scaffolders\DesignModel\DesignModelTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\Message\Messages.ps1" />
+    <None Include="CodeTemplates\Scaffolders\Message\Message.ps1" />
+    <None Include="CodeTemplates\Scaffolders\Message\MessageTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\SimpleDto\SimpleDto.ps1" />
+    <None Include="CodeTemplates\Scaffolders\SimpleDto\SimpleDtoTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewListWithDCV\ViewListWithDCV.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ViewListWithDCV\ViewListWithDCVControlXamlTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewModelEditTests\ViewModelEditTests.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ViewModelEditTests\ViewModelEditTestsTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewModelEdit\ViewModelEdit.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ViewModelEdit\ViewModelEditTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewModelListWithDCV\ViewModelListWithDCV.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ViewModelListWithDCV\ViewModelListWithDCVTemplate.cs.t4" />
+    <None Include="CodeTemplates\Scaffolders\ViewModel\ViewModel.ps1" />
+    <None Include="CodeTemplates\Scaffolders\ViewModel\ViewModelTemplate.cs.t4" />
+    <None Include="packages.config" />
+    <None Include="Properties\AppManifest.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Libs\System.Windows.Controls.Data.DataForm.Toolkit.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\FuelTracker.Web\Resources\RegistrationDataResources.resx">
+      <Link>Web\Resources\RegistrationDataResources.resx</Link>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>RegistrationDataResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\FuelTracker.Web\Resources\ValidationErrorResources.resx">
+      <Link>Web\Resources\ValidationErrorResources.resx</Link>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ValidationErrorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Resources\ApplicationStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ApplicationStrings.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>FuelTracker</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Resources\ErrorResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorResources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>FuelTracker</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Resources\SecurityQuestions.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>SecurityQuestions.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>FuelTracker</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\OutOfBrowserSettings.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Libs\Messages\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Snippets\CodeGenerationSnippets.txt" />
+    <Resource Include="Images\add-1-icon-small.png" />
+    <Resource Include="Images\Adjustable-Wrench-icon.png" />
+    <Resource Include="Images\administrator-icon.png" />
+    <Resource Include="Images\beta_icon.png" />
+    <Resource Include="Images\boiler-pan-icon.png" />
+    <Resource Include="Images\box-1-icon.png" />
+    <Resource Include="Images\brioche-icon-small.png" />
+    <Resource Include="Images\calculator-icon-small.png" />
+    <Resource Include="Images\cancel-icon-small.png" />
+    <Resource Include="Images\chart-1-icon-small.png" />
+    <Resource Include="Images\cheff-icon.png" />
+    <Resource Include="Images\close-icon-small.png" />
+    <Resource Include="Images\content-tree-icon-small.png" />
+    <Resource Include="Images\Delete-icon-small.png" />
+    <Resource Include="Images\edit-icon-small.png" />
+    <Resource Include="Images\flour-icon-small.png" />
+    <Resource Include="Images\full-shopping-cart-icon.png" />
+    <Resource Include="Images\memory-icon-small.png" />
+    <Resource Include="Images\nomenclatures-icon-small.png" />
+    <Resource Include="Images\ok-icon-small.png" />
+    <Resource Include="Images\osd-favorites-icon.png" />
+    <Resource Include="Images\pan-icon.png" />
+    <Resource Include="Images\recipe-book-icon-small.png" />
+    <Resource Include="Images\refresh-icon-small.png" />
+    <Resource Include="Images\settings-icon.png" />
+    <Resource Include="Images\Toolbar-Browser-Home-icon.png" />
+    <Resource Include="Images\trash-icon-small.png" />
+    <Content Include="InstallationDummyFile.txt" />
+    <Content Include="Libs\Acstre.Utilities.SL4.dll" />
+    <Content Include="Libs\Acstre.Windows.Controls.dll" />
+    <Content Include="Libs\DevExpress.AgDataGrid.v10.1.dll" />
+    <Content Include="Libs\DevExpress.AgMenu.v10.1.dll" />
+    <Content Include="Libs\DevExpress.Data.v10.1.dll" />
+    <Content Include="Libs\DevExpress.Xpf.Core.v10.1.dll" />
+    <Content Include="Libs\FirstLook.ServiceModel.DomainServices.Client.Security.dll" />
+    <Content Include="Libs\GalaSoft.MvvmLight.Extras.SL4.dll" />
+    <Content Include="Libs\GalaSoft.MvvmLight.Extras.SL4.XML" />
+    <Content Include="Libs\GalaSoft.MvvmLight.SL4.dll" />
+    <Content Include="Libs\GalaSoft.MvvmLight.SL4.XML" />
+    <Content Include="Libs\System.Windows.Interactivity.dll" />
+    <Content Include="Libs\System.Windows.Interactivity.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

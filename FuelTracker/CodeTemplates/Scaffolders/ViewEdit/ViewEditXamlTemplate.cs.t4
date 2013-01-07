@@ -1,0 +1,610 @@
+﻿<#@ Template Language="C#" HostSpecific="True" Inherits="DynamicTransform" #>
+<#@ Output Extension="xaml" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations" #>
+<#@ import namespace="System.Data.Linq.Mapping" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Diagnostics" #>
+<# var modelType = (EnvDTE.CodeType)Model.ModelType;
+ var viewName = Model.ViewName;
+ var viewControlName = Model.ViewControlName;
+ var viewModelName = Model.ViewModelName;
+ var domainContext = Model.DomainContextName;
+   
+ string viewNamespace = Model.ViewNamespace;
+ string defaultNamespace = Model.DefaultNamespace;
+ 
+// string modelTypeNamespace = modelType.Namespace;
+ string modelTypeName = modelType.Name;
+ string modelTypeNameLowerFirstLetter = modelTypeName.ToLower()[0] + modelTypeName.Substring(1);
+ string modelTypeNamePlural = Model.ModelTypeNamePlural;//modelTypeName + "s";
+ string modelTypeNamePluralLowerFirstLetter = modelTypeNamePlural.ToLower()[0] + modelTypeNamePlural.Substring(1);
+
+ string primaryKeyName = Model.PrimaryKeyName;//modelTypeName + "Id";
+ string primaryKeyNameLowerFirstLetter = primaryKeyName.ToLower()[0] + primaryKeyName.Substring(1);
+ 
+var relatedEntities = ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>();
+
+bool noChildRelations = (bool)Model.NoChildRelatedEntities;
+bool includeChildRelations = !noChildRelations; 
+#>
+<controls:ChildWindow xmlns:my="clr-namespace:<#= defaultNamespace #>.Controls"   
+		   x:Class="<#= viewNamespace #>.<#= viewName #>"
+		   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+		   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		   mc:Ignorable="d"
+		   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+		   xmlns:customControls="clr-namespace:Acstre.Windows.Controls;assembly=Acstre.Windows.Controls"
+		   xmlns:controls="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls"
+		   xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk"
+		   xmlns:main="clr-namespace:<#= defaultNamespace #>"                      
+		   Width="640" Height="480" 
+		   Title="Преглед, редакция или добавяне на <#= modelTypeName #>"
+		   KeyDown="OnChildWindowKeyDown"
+			d:DataContext="{Binding Source={StaticResource Locator}, Path=<#= viewModelName #>}"          
+					  >
+	<sdk:ChildWindow.Resources>
+		<!-- When defining your own styles, set "based on" the same way to keep control theming -->
+		<Style x:Key="OkButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}" />
+
+		<ItemsPanelTemplate x:Key="StackPanelItemsPanelTemplate">
+			<VirtualizingStackPanel />
+		</ItemsPanelTemplate>
+		
+		<customControls:DataContextProxy x:Key="DataContextProxy"/>
+
+		<DataTemplate x:Key="ErrorsDisplayDataTemplate">
+			<StackPanel Orientation="Horizontal">
+				<StackPanel Visibility="{Binding HasValidationErrors, Converter={StaticResource BoolToVisibility}}" Orientation="Horizontal">
+					<my:ErrorIcon ToolTipService.ToolTip="Грешки!" />
+				</StackPanel>
+			</StackPanel>
+		</DataTemplate>
+
+		<ControlTemplate x:Key="ErrorsDisplayControlTemplate">
+			<StackPanel Orientation="Horizontal">
+				<StackPanel Visibility="{Binding HasValidationErrors, Converter={StaticResource BoolToVisibility}}" Orientation="Horizontal">
+					<my:ErrorIcon >
+						<ToolTipService.ToolTip>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="Открити са грешки" Margin="3"/>
+								<TextBlock Text="{Binding Source=ValidationErrors, Path=Count}" Margin="3"/>
+							</StackPanel>
+						</ToolTipService.ToolTip>
+					</my:ErrorIcon>
+				</StackPanel>
+			</StackPanel>
+		</ControlTemplate>
+
+		<DataTemplate x:Key="EmptyDataTemplate">
+		</DataTemplate>
+
+		<main:IsZeroToTextConverter x:Key="IsZeroTo<#= modelTypeName #>OperationTitle" TrueValue="Добавяне на нов <#= modelTypeName #>" FalseValue="Преглед и редакция на <#= modelTypeName #>"/>
+	</sdk:ChildWindow.Resources>
+	<Grid x:Name="LayoutRoot" Margin="2">
+		<Grid.Resources>
+
+		</Grid.Resources>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--Binding to the <#= modelTypeName #> model property of the ViewModel-->
+		<Border Grid.Column="0" Grid.Row="1" 
+				DataContext="{Binding <#= modelTypeName #>}" >
+			<Grid Name="gridRoot" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+				<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+					<ContentControl Style="{StaticResource CommonIcon}" />
+					<TextBlock FontWeight="Bold" Text="{Binding <#= primaryKeyName #>, Converter={StaticResource IsZeroTo<#= modelTypeName #>OperationTitle} }" VerticalAlignment="Center"  />
+				</StackPanel>
+				<#
+	GenerateTypeEditGrid(modelType, true);
+#>
+				<!--Child related entities-->
+				<StackPanel Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+<#
+	//Generates - Child Related entities
+	if(includeChildRelations) 
+	foreach(var relatedChildEntity in ChildRelations)
+	{
+		var relatedChildEntityCodeType = relatedChildEntity.RelatedEntityType;
+		string relatedChildEntityTypeNamePlural = relatedChildEntity.RelatedEntityTypeNamePlural;
+
+		string relatedChildEntityTypeName = relatedChildEntity.RelatedEntityType.Name;
+		string relatedChildEntityTypeNameLowerFirstLetter = relatedChildEntityTypeName.ToLower()[0] + relatedChildEntityTypeName.Substring(1);
+
+		string relatedChildEntityTypePrimaryKeyName = relatedChildEntityTypeName + "Id";
+		string relatedChildEntityTypePrimaryKeyNameLowerFirsLetter = relatedChildEntityTypePrimaryKeyName.ToLower()[0] + relatedChildEntityTypePrimaryKeyName.Substring(1);
+
+		//relatedChildEntity.RelationNamePlural 
+
+		string relatedChildEntityCollectionName = relatedChildEntity.RelatedEntityTypeNamePlural;
+		string relatedChildEntityCollectionNameLowerFirstLetter = relatedChildEntityCollectionName.ToLower()[0] + relatedChildEntityCollectionName.Substring(1);
+
+#>
+					<!--<#= relatedChildEntityCollectionName #> child entities-->				
+					<Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" Name="<#= relatedChildEntityCollectionNameLowerFirstLetter #>ListGrid" VerticalAlignment="Stretch">
+						<Grid.Resources>
+							<DataTemplate x:Key="<#= relatedChildEntityTypeName #>EditDataTemplate">
+								<Grid Grid.Row="2" 
+										  Grid.ColumnSpan="2" 
+										  DataContext="{Binding Path=SelectedItem, Mode=TwoWay, ElementName=<#= relatedChildEntityCollectionNameLowerFirstLetter #>DataGrid}" 
+										  Background="White" 
+										  >
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto"/>
+										<RowDefinition Height="Auto"/>
+										<RowDefinition Height="Auto"/>
+									</Grid.RowDefinitions>
+									<StackPanel Grid.Row="0" Orientation="Horizontal"></StackPanel>
+									<StackPanel Grid.Row="1" Orientation="Horizontal">
+										<Grid Width="30" Margin="2">
+											<ContentControl Style="{StaticResource EditIcon}"></ContentControl>
+										</Grid>
+
+									</StackPanel>
+									<StackPanel Grid.Row="2">
+										<ItemsControl ItemsSource="{Binding ValidationErros}"></ItemsControl>
+									</StackPanel>
+								</Grid>
+							</DataTemplate>						
+						</Grid.Resources>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="1*" />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="*" MinHeight="100" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+
+						<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+							<ContentControl Style="{StaticResource CommonIcon}" />
+							<TextBlock FontWeight="Bold" Text="<#=relatedChildEntityCollectionName #> в <#= modelTypeName #>" Visibility="Visible" />
+						</StackPanel>
+						<sdk:DataGrid AutoGenerateColumns="False" Grid.Column="0" Grid.Row="1" 
+									  ItemsSource="{Binding Path=<#= relatedChildEntityCollectionName #>, Mode=TwoWay}" 
+									  Name="<#= relatedChildEntityCollectionNameLowerFirstLetter #>DataGrid" 
+									  RowDetailsVisibilityMode="VisibleWhenSelected"
+									  SelectedItem="{Binding Path=DataContext.Selected<#= relatedChildEntityTypeName #>, Mode=TwoWay, ElementName=LayoutRoot}" 
+									  SelectionMode="Single"
+									  RowDetailsTemplate="{StaticResource <#= relatedChildEntityTypeName #>EditDataTemplate}"
+							>
+							<sdk:DataGrid.Resources>
+								<!--Parent related entities To a child entity-->
+								<!--<DataTemplate x:Key="RecipeViewDataTemplate">
+									<TextBlock Text="{Binding Path=RecipeId, Converter={StaticResource RecipeIdToName}}" Width="150" Margin="2"/>
+								</DataTemplate>
+								<DataTemplate x:Key="RecipeEditDataTemplate">
+									<customControls:ComboBoxEx
+													  Margin="2"  
+													  DisplayMemberPath="Name"
+													  SelectedValueProper="{Binding RecipeId, Mode=TwoWay, NotifyOnValidationError=True}"
+													  SelectedValuePath="RecipeId" 
+													  Width="150" 
+													  ItemsSource="{Binding Path=DataSource.Recipes, Source={StaticResource DataContextProxy}}" 
+											 />
+								</DataTemplate>-->
+							</sdk:DataGrid.Resources>
+							<sdk:DataGrid.Columns>
+<#
+		GenerateDataGridColumns(relatedChildEntityCodeType, true);
+#>
+								<sdk:DataGridTemplateColumn x:Name="<#= relatedChildEntityCollectionNameLowerFirstLetter #>DataGridValidationColumn" CellTemplate="{StaticResource ErrorsDisplayDataTemplate}"/>
+							</sdk:DataGrid.Columns>
+						</sdk:DataGrid>
+
+						<StackPanel Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" Orientation="Horizontal">
+							<Button Command="{Binding Path=DataContext.AddNew<#= relatedChildEntityTypeName #>Command,ElementName=LayoutRoot, Mode=TwoWay}" Content="Добави <#= relatedChildEntityTypeName #>" HorizontalAlignment="Right" Margin="2" Name="Add<#= relatedChildEntityTypeName #>Button" Width="Auto" Style="{StaticResource AddButtonStyle}" />
+							<Button Content="Редактирай <#= relatedChildEntityTypeName #>" Margin="2" Name="Edit<#= relatedChildEntityTypeName #>Button" Width="Auto" Visibility="Collapsed" />
+							<Button Command="{Binding Path=DataContext.Delete<#= relatedChildEntityTypeName #>Command, Mode=TwoWay, ElementName=LayoutRoot}" Content="Премахни <#= relatedChildEntityTypeName #>" HorizontalAlignment="Right"  Margin="2" Name="Remove<#= relatedChildEntityTypeName #>Button" Width="Auto" Style="{StaticResource DeleteButtonStyle}" />
+						</StackPanel>
+					</Grid>
+<#
+	}
+#>
+				</StackPanel>
+			</Grid>
+		</Border>
+		<StackPanel HorizontalAlignment="Left" Margin="0,0,3,0" Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Center">
+			<ContentControl 
+				HorizontalAlignment="Stretch"
+				VerticalAlignment="Stretch"
+				DataContext="{Binding <#= modelTypeName #>}"
+				Template="{StaticResource ErrorsDisplayControlTemplate}"/>
+		</StackPanel>
+		<!--Data manipulation buttons-->
+		<StackPanel HorizontalAlignment="Right" Margin="0,0,3,0" Orientation="Horizontal" Grid.Row="2" VerticalAlignment="Bottom">
+			<Button x:Name="OKButton" Content="Запиши" Width="105" Height="30" Margin="3" Command="{Binding Save<#= modelTypeName #>Command}" Style="{StaticResource ConfirmButtonStyle}" />
+			<Button x:Name="CancelButton" Content="{Binding <#= modelTypeName #>.HasChanges, Converter={StaticResource HasChangesToCloseButtonText}}" Width="Auto" Height="30" Margin="3" Style="{StaticResource CancelButtonStyle}" Click="CancelButton_Click" />
+		</StackPanel>
+	</Grid>
+</controls:ChildWindow>
+
+<#+
+public void GenerateTypeEditGrid(EnvDTE.CodeType codeType, bool areFieldsEditable)
+{
+	var modelProperties = GetModelProperties(codeType, true);
+	int modelPropertiesCount = modelProperties.Count();
+	string modelTypeName = codeType.Name;
+#>	
+				<Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch"
+					   Name="grid<#= modelTypeName #>Details" Width="Auto">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+<#+
+	for (int i = 0; i < modelPropertiesCount; i++ )
+	{ 
+#>
+						<RowDefinition Height="Auto" />		
+<#+
+	}
+#>
+						<RowDefinition Height="Auto" />		
+					</Grid.RowDefinitions>
+<#+
+	int propIndex = 0;
+	foreach (ModelProperty property in modelProperties) 
+	{
+		propIndex ++;//propIndex = 0 row is reseved for some title if you want to
+		string propertyValue = string.Empty;
+		string propertyName = property.Name;
+		string propertyNameLowerFirstLetter = propertyName.ToLower()[0] + propertyName.Substring(1);
+#>
+					<TextBlock Text="<#= propertyName #>"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="0"/>
+<#+
+		if (property.IsForeignKey)
+		{
+			var relatedEntityInfo = ParentRelations.Where(x => x.RelationProperty.Name == propertyName).FirstOrDefault();
+
+			if (areFieldsEditable)
+			{
+#>
+					<customControls:ComboBoxEx
+									  Margin="2"  
+									  DisplayMemberPath="Name"
+									  SelectedValueProper="{Binding <#= propertyName #>, Mode=TwoWay, NotifyOnValidationError=True}"
+									  SelectedValuePath="<#= relatedEntityInfo.RelatedEntityPrimaryKeyName #>" 
+									  ItemsSource="{Binding Path=DataSource.<#= relatedEntityInfo.RelatedEntityTypeNamePlural #>, Source={StaticResource DataContextProxy}}" 
+									  Grid.Row="<#= propIndex #>" Grid.Column="1"
+											 />
+<#+        	          
+			}
+			else
+			{
+					//<TextBlock Text="{Binding Path= propertyName , Converter={StaticResource RecipeIdToName}}" Width="150" Margin="2"/>
+#>
+					<TextBlock Text="{Binding Path=<#= propertyName #>}" Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                  
+			}
+		}
+		else
+		if ((property.Type.IsType(typeof(decimal)))
+		 || (property.Type.IsType(typeof(double)))
+		 || (property.Type.IsType(typeof(int))))
+		{
+			if (areFieldsEditable)
+			{
+#>
+					<TextBox Text="{Binding <#= propertyName #>}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+
+			}
+			else
+			{
+#>
+					<TextBlock Text="{Binding <#= propertyName #>}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+		}
+		else if (property.Type.IsType(typeof(string)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+					<TextBox Text="{Binding <#= propertyName #>, Mode=TwoWay}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+
+			}
+			else
+			{
+#>
+					<TextBlock Text="{Binding <#= propertyName #>}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+	
+		}
+		else if (property.Type.IsType(typeof(DateTime)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+					<controls:DatePicker Text="{Binding <#= propertyName #>, Mode=TwoWay}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+
+			}
+			else
+			{
+#>
+					<TextBlock Text="{Binding <#= propertyName #>}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>					
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+		}
+		else if (property.Type.IsType(typeof(Boolean)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+					<CheckBox IsChecked="{Binding <#= propertyName #>, Mode=TwoWay}" IsEnabled="False" Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+
+			}
+			else
+			{
+#>
+					<CheckBox IsChecked="{Binding <#= propertyName #>, Mode=TwoWay}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+		}          
+		else 
+		{
+			if (areFieldsEditable)
+			{
+#>
+					<TextBox Text="{Binding <#= propertyName #>, Mode=TwoWay}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+
+			}
+			else
+			{
+#>
+					<TextBlock Text="{Binding <#= propertyName #>}"  Margin="2" Grid.Row="<#= propIndex #>" Grid.Column="1"/>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+		}        
+	}
+#>	
+				</Grid>
+<#+    
+
+}
+
+
+#>
+
+<#+
+public void GenerateDataGridColumns(EnvDTE.CodeType codeType, bool areFieldsEditable)
+{
+	foreach (ModelProperty property in GetModelProperties(codeType, true)) 
+	{
+		string propertyValue = string.Empty;
+		string propertyName = property.Name;
+		string propertyNameLowerFirstLetter = propertyName.ToLower()[0] + propertyName.Substring(1);
+
+		if ((property.Type.IsType(typeof(decimal)))
+		 || (property.Type.IsType(typeof(double)))
+		 || (property.Type.IsType(typeof(int))))
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+		}
+		else if (property.Type.IsType(typeof(string)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+	
+		}
+		else if (property.Type.IsType(typeof(DateTime)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+
+		}        
+		else 
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+
+		}        
+	}
+
+}
+
+
+#>
+
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+IEnumerable<RelatedEntityInfo> ChildRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Child); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>

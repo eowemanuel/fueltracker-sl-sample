@@ -1,0 +1,952 @@
+﻿<#@ Template Language="C#" HostSpecific="True" Inherits="DynamicTransform" #>
+<#@ Output Extension="cs" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations" #>
+<#@ import namespace="System.Data.Linq.Mapping" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Diagnostics" #>
+<# var modelType = (EnvDTE.CodeType)Model.ModelType;
+ var viewModelName = Model.ViewModelName;
+ var domainContext = Model.DomainContextName;
+   
+ string viewModelNamespace = Model.ViewModelNamespace;
+ string defaultNamespace = Model.DefaultNamespace;
+ string messagesNamespace = defaultNamespace + ".Messages";
+ string servicesNamespace = defaultNamespace + ".Services";
+ 
+// string modelTypeNamespace = modelType.Namespace;
+ string modelTypeName = modelType.Name;
+ string modelTypeNameLowerFirstLetter = modelTypeName.ToLower()[0] + modelTypeName.Substring(1);
+ string modelTypeNamePlural = Model.ModelTypeNamePlural;//modelTypeName + "s";
+ string modelTypeNamePluralLowerFirstLetter = modelTypeNamePlural.ToLower()[0] + modelTypeNamePlural.Substring(1);
+
+ string primaryKeyName = Model.PrimaryKeyName;//modelTypeName + "Id";
+ string primaryKeyNameLowerFirstLetter = primaryKeyName.ToLower()[0] + primaryKeyName.Substring(1);
+ 
+ var relatedEntities = ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>();
+
+ bool noChildRelations = (bool)Model.NoChildRelatedEntities;
+ bool includeChildRelations = !noChildRelations; 
+#>
+using System;
+using System.Linq;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.ServiceModel.DomainServices.Client;
+using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
+using <#= defaultNamespace #>.Web;
+using <#= messagesNamespace #>;
+using <#= servicesNamespace #>;
+
+namespace <#= viewModelNamespace #>
+{
+	public class <#= viewModelName #> : ViewModelBase
+	{
+		private I<#= modelTypeName #>DataService <#= modelTypeNameLowerFirstLetter #>DataService;
+		public I<#= modelTypeName #>DataService <#= modelTypeName #>DataService
+		{
+			get
+			{
+				return <#= modelTypeNameLowerFirstLetter #>DataService;
+			}
+		}
+
+		private void On<#= modelTypeName #>DataServiceNotifyHasChanges(object sender, HasChangesEventArgs e)
+		{
+			CanSave<#= modelTypeName #> = e.HasChanges;
+		}
+
+		public <#= viewModelName #>(int <#= primaryKeyNameLowerFirstLetter #>, 
+									I<#= modelTypeName #>DataService <#= modelTypeNameLowerFirstLetter #>DataService
+<#
+									//Generates - Parent Related entities
+									foreach(var relatedEntity in ParentRelations)
+									{
+										string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+										string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+										string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+										string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+										string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+										//relatedEntity.RelationNamePlural 
+
+										string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+										string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+									, IEnumerable<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionNameLowerFirstLetter #>
+<#
+									}
+#>									
+									):this(<#= modelTypeNameLowerFirstLetter #>DataService
+<#
+									//Generates - Parent Related entities
+									foreach(var relatedEntity in ParentRelations)
+									{
+										string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+										string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+										string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+										string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+										string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+										string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+										string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+										, <#= relatedEntityCollectionNameLowerFirstLetter #>
+<#
+									}#>)
+		{
+			if(<#= primaryKeyNameLowerFirstLetter #> > 0)
+			{
+				Load<#= modelTypeName #>(<#= primaryKeyNameLowerFirstLetter #>);
+			}
+		}
+
+		public <#= viewModelName #>(I<#= modelTypeName #>DataService <#= modelTypeNameLowerFirstLetter #>DataService
+<#
+									//Generates - Parent Related entities
+									foreach(var relatedEntity in ParentRelations)
+									{
+										string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+										string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+										string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+										string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+										string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+										string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+										string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+									, IEnumerable<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionNameLowerFirstLetter #>
+<#
+									}
+#>											
+		)
+		{
+			if (<#= modelTypeNameLowerFirstLetter #>DataService == null)
+			{
+				throw new ArgumentNullException("<#= modelTypeNameLowerFirstLetter #>DataService must not be null");
+			}
+			this.<#= modelTypeNameLowerFirstLetter #>DataService = <#= modelTypeNameLowerFirstLetter #>DataService;
+			this.<#= modelTypeNameLowerFirstLetter #>DataService.NotifyHasChanges += On<#= modelTypeName #>DataServiceNotifyHasChanges;
+
+			//Parent entities assign
+<#
+			//Generates - Parent Related entities
+			foreach(var relatedEntity in ParentRelations)
+			{
+				string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+				string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+				string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																		   
+				string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+				string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+				string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+				string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+			if(<#= relatedEntityCollectionNameLowerFirstLetter #> == null)
+			{
+				throw new ArgumentNullException("<#= relatedEntityCollectionNameLowerFirstLetter #> must not be null");
+			}
+			this.<#= relatedEntityCollectionName #> = new ObservableCollection<<#= relatedEntityTypeName #>>(<#= relatedEntityCollectionNameLowerFirstLetter #>);
+
+<#
+			}
+#>									
+			LoadNomenclaturesData();
+			New<#= modelTypeName #>();
+		}
+
+		public <#= viewModelName #>(<#= modelTypeName #> <#= modelTypeNameLowerFirstLetter #>, 
+									I<#= modelTypeName #>DataService <#= modelTypeNameLowerFirstLetter #>DataService
+<#
+									//Generates - Parent Related entities
+									foreach(var relatedEntity in ParentRelations)
+									{
+										string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+										string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+										string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+										string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+										string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+
+										string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+										string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+									, IEnumerable<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionNameLowerFirstLetter #>
+<#
+									}
+#>									
+									):this(<#= modelTypeNameLowerFirstLetter #>DataService
+<#
+									//Generates - Parent Related entities
+									foreach(var relatedEntity in ParentRelations)
+									{
+										string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+										string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+										string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+										string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+										string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+										string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+										string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+										, <#= relatedEntityCollectionNameLowerFirstLetter #>
+<#
+									}#>)
+
+		{
+			if (<#= modelTypeNameLowerFirstLetter #> == null)
+            {
+                throw new ArgumentNullException("<#= modelTypeNameLowerFirstLetter #> must not be null");
+            }
+			this.<#= modelTypeName #> = <#= modelTypeNameLowerFirstLetter #>;
+		}
+
+		#region Nomenclatures
+		private void LoadNomenclaturesData()
+		{
+			//TO DO: Load nomenclatures data
+			//Load<= relatedEntityCollectionName >();
+		}
+
+<#
+	//Generates - Parent Related entities
+	foreach(var relatedEntity in ParentRelations)
+	{
+		string relatedEntityTypeNamePlural = relatedEntity.RelatedEntityTypeNamePlural;
+		
+		string relatedEntityTypeName = relatedEntity.RelatedEntityType.Name;
+		string relatedEntityTypeNameLowerFirstLetter = relatedEntityTypeName.ToLower()[0] + relatedEntityTypeName.Substring(1);
+																																				   
+		string relatedEntityTypePrimaryKeyName = relatedEntityTypeName + "Id";
+		string relatedEntityTypePrimaryKeyNameLowerFirsLetter = relatedEntityTypePrimaryKeyName.ToLower()[0] + relatedEntityTypePrimaryKeyName.Substring(1);
+		   
+		//relatedEntity.RelationNamePlural 
+
+		string relatedEntityCollectionName = relatedEntity.RelatedEntityTypeNamePlural;
+		string relatedEntityCollectionNameLowerFirstLetter = relatedEntityCollectionName.ToLower()[0] + relatedEntityCollectionName.Substring(1);
+		
+#>
+		#region <#= relatedEntityCollectionName #> Nomenclature
+
+		public const string <#= relatedEntityCollectionName #>PropertyName = "<#= relatedEntityCollectionName #>";
+		private ObservableCollection<<#= relatedEntityTypeName #>> _<#= relatedEntityCollectionNameLowerFirstLetter #>;
+		public ObservableCollection<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionName #>
+		{
+			get
+			{
+				if (_<#= relatedEntityCollectionNameLowerFirstLetter #> == null)
+				{
+					_<#= relatedEntityCollectionNameLowerFirstLetter #> = new ObservableCollection<<#= relatedEntityTypeName #>>();
+				}
+				return _<#= relatedEntityCollectionNameLowerFirstLetter #>;
+			}
+
+			private set
+			{
+				if (_<#= relatedEntityCollectionNameLowerFirstLetter #> == value)
+				{
+					return;
+				}
+				_<#= relatedEntityCollectionNameLowerFirstLetter #> = value;
+
+				RaisePropertyChanged(<#= relatedEntityCollectionName #>PropertyName);
+			}
+		}
+
+		#region Manualy load <#= relatedEntityCollectionName #>
+		//I<#= relatedEntityTypeName #>DataService <#= relatedEntityTypeNameLowerFirstLetter #>DataService = ServiceProvider.Instance.<#= relatedEntityTypeName #>DataService;
+
+		///// <summary>
+		///// Load <#= relatedEntityCollectionName #> nomenlcature
+		///// </summary>
+		//private void Load<#= relatedEntityCollectionName #>()
+		//{
+		//    <#= relatedEntityCollectionName #> = null;
+		//    <#= relatedEntityTypeNameLowerFirstLetter #>DataService.Get<#= relatedEntityCollectionName #>List(Get<#= relatedEntityCollectionName #>Callback, int.MaxValue);
+		//}
+
+		///// <summary>
+		///// Fires when <#= relatedEntityCollectionName #> are  loaded
+		///// </summary>
+		//private void Get<#= relatedEntityCollectionName #>Callback(ObservableCollection<<#= relatedEntityTypeName #>> <#= relatedEntityCollectionNameLowerFirstLetter #>)
+		//{
+		//    if (<#= relatedEntityCollectionNameLowerFirstLetter #> == null)
+		//    {
+		//        return;
+		//    }
+
+		//    if (<#= relatedEntityCollectionNameLowerFirstLetter #>.Count <= 0)
+		//    {
+		//        return;
+		//    }
+
+		//    this.<#= relatedEntityCollectionName #> = <#= relatedEntityCollectionNameLowerFirstLetter #>;
+
+		//}
+		#endregion
+
+		#endregion
+<#
+	}
+#>
+		#endregion
+
+		#region <#= modelTypeName #> logic
+
+		#region <#= modelTypeName #> Entity Property
+
+		//the Id of <#= modelTypeName #>
+		protected int <#= modelTypeName #>Id { get; set; }
+
+		private void Load<#= modelTypeName #>(int <#= modelTypeNameLowerFirstLetter #>Id)
+		{
+			<#= modelTypeName #> = null;
+			<#= modelTypeName #>DataService.Get<#= modelTypeName #>ById(<#= modelTypeNameLowerFirstLetter #>Id, Get<#= modelTypeName #>ByIdCallback);
+		}
+
+		private void New<#= modelTypeName #>()
+		{
+			<#= modelTypeName #> = new <#= modelTypeName #>();
+			CanSave<#= modelTypeName #> = true;
+		}
+
+		/// <summary>
+		/// Fires when <#= modelTypeName #> is loaded
+		/// </summary>
+		/// <param name="<#= modelTypeNameLowerFirstLetter #>"></param>
+		private void Get<#= modelTypeName #>ByIdCallback(ObservableCollection<<#= modelTypeName #>> <#= modelTypeNamePluralLowerFirstLetter #>)
+		{
+			if (<#= modelTypeNamePluralLowerFirstLetter #> == null)
+			{
+				return;
+			}
+
+			if (<#= modelTypeNamePluralLowerFirstLetter #>.Count <= 0)
+			{
+				return;
+			}
+
+			var <#= modelTypeNameLowerFirstLetter #> = <#= modelTypeNamePluralLowerFirstLetter #>.FirstOrDefault();
+			this.<#= modelTypeName #> = <#= modelTypeNameLowerFirstLetter #>;
+		}
+
+		/// <summary>
+		/// The <see cref="<#= modelTypeName #>" /> property's name.
+		/// </summary>
+		public const string <#= modelTypeName #>PropertyName = "<#= modelTypeName #>";
+
+		private <#= modelTypeName #> _<#= modelTypeNameLowerFirstLetter #>;
+
+		/// <summary>
+		/// The <#= modelTypeName #> that is being edited
+		/// </summary>
+		public <#= modelTypeName #> <#= modelTypeName #>
+		{
+			get
+			{
+				return _<#= modelTypeNameLowerFirstLetter #>;
+			}
+
+			set
+			{
+				if (_<#= modelTypeNameLowerFirstLetter #> == value)
+				{
+					return;
+				}
+
+				var oldValue = _<#= modelTypeNameLowerFirstLetter #>;
+				_<#= modelTypeNameLowerFirstLetter #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(<#= modelTypeName #>PropertyName);
+
+				bool canManipulateChildEntities = (<#= modelTypeName #> != null);
+				<#
+	//Generates - Child Related entities manipulations
+	if(includeChildRelations)
+	foreach(var relatedChildEntity in ChildRelations)
+	{
+		string relatedChildEntityTypeNamePlural = relatedChildEntity.RelatedEntityTypeNamePlural;
+
+		string relatedChildEntityTypeName = relatedChildEntity.RelatedEntityType.Name;
+		string relatedChildEntityTypeNameLowerFirstLetter = relatedChildEntityTypeName.ToLower()[0] + relatedChildEntityTypeName.Substring(1);
+
+		string relatedChildEntityTypePrimaryKeyName = relatedChildEntityTypeName + "Id";
+		string relatedChildEntityTypePrimaryKeyNameLowerFirsLetter = relatedChildEntityTypePrimaryKeyName.ToLower()[0] + relatedChildEntityTypePrimaryKeyName.Substring(1);
+
+		//relatedChildEntity.RelationNamePlural 
+
+		string relatedChildEntityCollectionName = relatedChildEntity.RelatedEntityTypeNamePlural;
+		string relatedChildEntityCollectionNameLowerFirstLetter = relatedChildEntityCollectionName.ToLower()[0] + relatedChildEntityCollectionName.Substring(1);
+
+#>
+				CanAddNew<#= relatedChildEntityTypeName #> = canManipulateChildEntities;
+<#
+	}
+#>
+			}
+		}
+
+		#endregion
+
+		#region Save<#= modelTypeName #>Command
+
+		private RelayCommand _save<#= modelTypeName #>Command;
+
+		/// <summary>
+		/// The <see cref="Save<#= modelTypeName #>Command" />.
+		/// </summary>
+		public RelayCommand Save<#= modelTypeName #>Command
+		{
+			get
+			{
+				if (_save<#= modelTypeName #>Command == null)
+				{
+					_save<#= modelTypeName #>Command = new RelayCommand(
+							() =>
+							{
+								Save<#= modelTypeName #>Execute();
+							},
+							() => CanSave<#= modelTypeName #>
+						);
+				}
+				return _save<#= modelTypeName #>Command;
+			}
+			set
+			{
+				_save<#= modelTypeName #>Command = value;
+			}
+		}
+
+		/// <summary>
+		/// Executes when Save<#= modelTypeName #>Command is called
+		/// </summary>
+		public void Save<#= modelTypeName #>Execute()
+		{
+			if (<#= modelTypeName #>.EntityState == EntityState.Detached)
+			{
+				<#= modelTypeName #>DataService.Save(<#= modelTypeName #>, On<#= modelTypeName #>Saved, null);
+			}
+			else
+			{
+				<#= modelTypeName #>DataService.Save(On<#= modelTypeName #>Saved, null);
+			}
+		}
+
+		public void On<#= modelTypeName #>Saved(SubmitOperation op)
+        {
+
+            if (op.HasError)
+            {
+                string errorMessage = GenerateSubmitOperationErrorMessage(op);
+                this.SaveUnsuccessfull(errorMessage);
+
+                op.MarkErrorAsHandled();
+                return;
+            }
+
+            string successMessage = "Записът е успешен!";
+            this.SaveSuccessfull(successMessage);
+        }
+
+        private string GenerateSubmitOperationErrorMessage(SubmitOperation op)
+        {
+            //Show error message dialog
+            string errorMessage = String.Format("{0}:\n{1}\n", "Неуспешен запис!", op.Error.Message);
+            foreach (var errorEntity in op.EntitiesInError)
+            {
+                foreach (var validationResult in errorEntity.ValidationErrors)
+                {
+                    errorMessage += string.Format("{0}\n", validationResult.ErrorMessage);
+                }
+
+            }
+            return errorMessage;
+        }
+
+        private void SaveUnsuccessfull(string errorMessage)
+        {
+            this.SendErrorMessage(errorMessage);
+        }
+
+        private void SendErrorMessage(string errorMessage)
+        {
+            var dialogErrorMessage = new ErrorDialogMessage(
+                errorMessage, "Съхраняване на <#= modelTypeName #>");//TO DO: Update message
+            Messenger.Default.Send(dialogErrorMessage);
+        }
+
+        private void SaveSuccessfull(string successMessage)
+        {
+            this.SendSaveSuccessMessage(successMessage);
+            this.SendUpdated<#= modelTypeName #>Message();
+        }
+
+        private void SendUpdated<#= modelTypeName #>Message()
+        {
+            //Send message to reload the <#= modelTypeName #>s list
+            var updated<#= modelTypeName #>Message = new Updated<#= modelTypeName #>Message()
+            {
+                <#= modelTypeName #> = this.<#= modelTypeName #>
+            };
+            Messenger.Default.Send<Updated<#= modelTypeName #>Message>(updated<#= modelTypeName #>Message);
+        }
+
+        private void SendSaveSuccessMessage(string message)
+        {
+            //Show success dialog message
+            string successMessage = message;
+            var dialogMessage = new SuccessDialogMessage(successMessage, "Съхраняване на <#= modelTypeName #>");
+            Messenger.Default.Send(dialogMessage);
+        }
+
+		public const string CanSave<#= modelTypeName #>PropertyName = "CanSave<#= modelTypeName #>";
+		private bool _canSave<#= modelTypeName #> = false;
+		public bool CanSave<#= modelTypeName #>
+		{
+			get
+			{
+				return _canSave<#= modelTypeName #>;
+			}
+
+			set
+			{
+				if (_canSave<#= modelTypeName #> == value)
+				{
+					return;
+				}
+
+				_canSave<#= modelTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanSave<#= modelTypeName #>PropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				Save<#= modelTypeName #>Command.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region CancelCommand
+
+		private RelayCommand _cancelCommand;
+		/// <summary>
+		/// The <see cref="CancelCommand" />.
+		/// </summary>
+
+		public RelayCommand CancelCommand
+		{
+			get
+			{
+				if (_cancelCommand == null)
+				{
+					_cancelCommand = new RelayCommand(
+							() =>
+							{
+								CancelExecute();
+							},
+							() => CanCancel
+						);
+				}
+				return _cancelCommand;
+			}
+			set
+			{
+				_cancelCommand = value;
+			}
+		}
+
+		/// <summary>
+		/// Executes when CancelCommand is called
+		/// </summary>
+		public void CancelExecute()
+		{
+		}
+
+		public const string CanCancelPropertyName = "CanCancel";
+
+		private bool _canCancel = true;
+		public bool CanCancel
+		{
+			get
+			{
+				return _canCancel;
+			}
+
+			set
+			{
+				if (_canCancel == value)
+				{
+					return;
+				}
+
+				_canCancel = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanCancelPropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				CancelCommand.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#endregion
+
+		#region Related Entities
+
+<#
+	//Generates - Child Related entities 
+	if(includeChildRelations)
+	foreach(var relatedChildEntity in ChildRelations)
+	{
+		string relatedChildEntityTypeNamePlural = relatedChildEntity.RelatedEntityTypeNamePlural;
+
+		string relatedChildEntityTypeName = relatedChildEntity.RelatedEntityType.Name;
+		string relatedChildEntityTypeNameLowerFirstLetter = relatedChildEntityTypeName.ToLower()[0] + relatedChildEntityTypeName.Substring(1);
+
+		string relatedChildEntityTypePrimaryKeyName = relatedChildEntityTypeName + "Id";
+		string relatedChildEntityTypePrimaryKeyNameLowerFirsLetter = relatedChildEntityTypePrimaryKeyName.ToLower()[0] + relatedChildEntityTypePrimaryKeyName.Substring(1);
+
+		//relatedChildEntity.RelationNamePlural 
+
+		string relatedChildEntityCollectionName = relatedChildEntity.RelatedEntityTypeNamePlural;
+		string relatedChildEntityCollectionNameLowerFirstLetter = relatedChildEntityCollectionName.ToLower()[0] + relatedChildEntityCollectionName.Substring(1);
+
+#>
+		#region <#= relatedChildEntityTypeName #>
+
+		#region AddNew<#= relatedChildEntityTypeName #>Command
+
+		private RelayCommand _addNew<#= relatedChildEntityTypeName #>Command;
+
+		/// <summary>
+		/// The <see cref="AddNew<#= relatedChildEntityTypeName #>Command" />.
+		/// </summary>
+		public RelayCommand AddNew<#= relatedChildEntityTypeName #>Command
+		{
+			get
+			{
+				if (_addNew<#= relatedChildEntityTypeName #>Command == null)
+				{
+					_addNew<#= relatedChildEntityTypeName #>Command = new RelayCommand(
+							() =>
+							{
+								AddNew<#= relatedChildEntityTypeName #>Execute();
+							},
+							() => CanAddNew<#= relatedChildEntityTypeName #>
+						);
+				}
+				return _addNew<#= relatedChildEntityTypeName #>Command;
+			}
+			set
+			{
+				_addNew<#= relatedChildEntityTypeName #>Command = value;
+			}
+		}
+
+		/// <summary>
+		/// Executes when AddNew<#= relatedChildEntityTypeName #>Command is called
+		/// </summary>
+		public void AddNew<#= relatedChildEntityTypeName #>Execute()
+		{
+			var new<#= relatedChildEntityTypeName #> = new <#= relatedChildEntityTypeName #>();
+			<#= modelTypeName #>.<#= relatedChildEntityCollectionName #>.Add(new<#= relatedChildEntityTypeName #>);
+			Selected<#= relatedChildEntityTypeName #> = new<#= relatedChildEntityTypeName #>;
+		}
+
+		public const string CanAddNew<#= relatedChildEntityTypeName #>PropertyName = "CanAddNew<#= relatedChildEntityTypeName #>";
+		private bool _canAddNew<#= relatedChildEntityTypeName #> = false;
+		public bool CanAddNew<#= relatedChildEntityTypeName #>
+		{
+			get
+			{
+				return _canAddNew<#= relatedChildEntityTypeName #>;
+			}
+
+			set
+			{
+				if (_canAddNew<#= relatedChildEntityTypeName #> == value)
+				{
+					return;
+				}
+
+				_canAddNew<#= relatedChildEntityTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanAddNew<#= relatedChildEntityTypeName #>PropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				AddNew<#= relatedChildEntityTypeName #>Command.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region Delete<#= relatedChildEntityTypeName #>Command
+
+		private RelayCommand _delete<#= relatedChildEntityTypeName #>Command;
+		public RelayCommand Delete<#= relatedChildEntityTypeName #>Command
+		{
+			get
+			{
+				if (_delete<#= relatedChildEntityTypeName #>Command == null)
+				{
+					_delete<#= relatedChildEntityTypeName #>Command = new RelayCommand(
+							() =>
+							{
+								Delete<#= relatedChildEntityTypeName #>Execute();
+							},
+							() => CanDelete<#= relatedChildEntityTypeName #>
+						);
+				}
+				return _delete<#= relatedChildEntityTypeName #>Command;
+			}
+			set
+			{
+				_delete<#= relatedChildEntityTypeName #>Command = value;
+			}
+		}
+
+		/// <summary>
+		/// Executes when Delete<#= relatedChildEntityTypeName #>Command is called
+		/// </summary>
+		public void Delete<#= relatedChildEntityTypeName #>Execute()
+		{
+			if (Selected<#= relatedChildEntityTypeName #> == null)
+			{
+				//throw new ArgumentNullException("{0} is Null", Selected<#= relatedChildEntityTypeName #>PropertyName);
+				return;
+			}
+			<#= modelTypeName #>.<#= relatedChildEntityCollectionName #>.Remove(Selected<#= relatedChildEntityTypeName #>);
+		}
+
+
+		/// <summary>
+		/// The <see cref="CanDelete<#= relatedChildEntityTypeName #>" /> property's name.
+		/// </summary>
+		public const string CanDelete<#= relatedChildEntityTypeName #>PropertyName = "CanDelete<#= relatedChildEntityTypeName #>";
+		private bool _canDelete<#= relatedChildEntityTypeName #> = false;
+		public bool CanDelete<#= relatedChildEntityTypeName #>
+		{
+			get
+			{
+				return _canDelete<#= relatedChildEntityTypeName #>;
+			}
+
+			set
+			{
+				if (_canDelete<#= relatedChildEntityTypeName #> == value)
+				{
+					return;
+				}
+
+				_canDelete<#= relatedChildEntityTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(CanDelete<#= relatedChildEntityTypeName #>PropertyName);
+
+				//tells the controls that are binded to the Command if it can execute
+				Delete<#= relatedChildEntityTypeName #>Command.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region Selected<#= relatedChildEntityTypeName #>
+		public const string Selected<#= relatedChildEntityTypeName #>PropertyName = "Selected<#= relatedChildEntityTypeName #>";
+		private <#= relatedChildEntityTypeName #> _selected<#= relatedChildEntityTypeName #>;
+		public <#= relatedChildEntityTypeName #> Selected<#= relatedChildEntityTypeName #>
+		{
+			get
+			{
+				return _selected<#= relatedChildEntityTypeName #>;
+			}
+
+			set
+			{
+				if (_selected<#= relatedChildEntityTypeName #> == value)
+				{
+					return;
+				}
+
+				_selected<#= relatedChildEntityTypeName #> = value;
+				// Update bindings, no broadcast
+				RaisePropertyChanged(Selected<#= relatedChildEntityTypeName #>PropertyName);
+
+				if (_selected<#= relatedChildEntityTypeName #> == null)
+				{
+					HasSelected<#= relatedChildEntityTypeName #> = false;
+					CanDelete<#= relatedChildEntityTypeName #> = false;
+				}
+				else
+				{
+					HasSelected<#= relatedChildEntityTypeName #> = true;
+					CanDelete<#= relatedChildEntityTypeName #> = true;
+				}
+
+			}
+		}
+		#endregion
+
+		#region HasSelected<#= relatedChildEntityTypeName #>
+		/// <summary>
+		/// The <see cref="HasSelected<#= relatedChildEntityTypeName #>" /> property's name.
+		/// </summary>
+		public const string HasSelected<#= relatedChildEntityTypeName #>dPropertyName = "HasSelected<#= relatedChildEntityTypeName #>";
+		private bool _hassSelected<#= relatedChildEntityTypeName #> = false;
+		public bool HasSelected<#= relatedChildEntityTypeName #>
+		{
+			get
+			{
+				return _hassSelected<#= relatedChildEntityTypeName #>;
+			}
+
+			set
+			{
+				if (_hassSelected<#= relatedChildEntityTypeName #> == value)
+				{
+					return;
+				}
+
+				_hassSelected<#= relatedChildEntityTypeName #> = value;
+
+				// Update bindings, no broadcast
+				RaisePropertyChanged(HasSelected<#= relatedChildEntityTypeName #>dPropertyName);
+			}
+		}
+		#endregion
+
+		#endregion
+<#
+	}
+#>
+		#endregion
+
+		public override void Cleanup()
+		{
+			//TO DO: Consider resources to clean up
+			// Clean own resources if needed
+
+			//Unregister notification event
+			<#= modelTypeNameLowerFirstLetter #>DataService.NotifyHasChanges -= On<#= modelTypeName #>DataServiceNotifyHasChanges;
+			base.Cleanup();
+		}
+
+	}
+}
+
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+IEnumerable<RelatedEntityInfo> ChildRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Child); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>
